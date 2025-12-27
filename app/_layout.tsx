@@ -1,59 +1,95 @@
-import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
-import 'react-native-reanimated';
+import { supabase } from '@/api/supabase';
+import { useLeagueStore } from '@/store/useLeagueStore';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Stack, useRouter, useSegments } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, View } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { useColorScheme } from '@/components/useColorScheme';
-
-export {
-  // Catch any errors thrown by the Layout component.
-  ErrorBoundary,
-} from 'expo-router';
-
-export const unstable_settings = {
-  // Ensure that reloading on `/modal` keeps a back button present.
-  initialRouteName: '(tabs)',
-};
-
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
+const queryClient = new QueryClient();
 
 export default function RootLayout() {
-  const [loaded, error] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-    ...FontAwesome.font,
-  });
+  const setUserProfile = useLeagueStore((state) => state.setUserProfile);
+  const userProfile = useLeagueStore((state) => state.userProfile);
+  const syncActiveLeague = useLeagueStore((state) => state.syncActiveLeague);
 
-  // Expo Router uses Error Boundaries to catch errors in the navigation tree.
-  useEffect(() => {
-    if (error) throw error;
-  }, [error]);
+  const segments = useSegments();
+  const router = useRouter();
+  const [isReady, setIsReady] = useState(false);
 
+  // profil ve aktif lig senkrenizasyonu
   useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
+    const fetchAndSetProfile = async (userId: string | undefined) => {
+      if (!userId) {
+        setUserProfile(null);
+        setIsReady(true);
+        return;
+      }
+      try {
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)
+          .single();
+
+        if (!error && profile) {
+          setUserProfile(profile);
+          // giriş yapılmışsa lig bilgisini arka planda yenile
+          await syncActiveLeague(profile.id);
+        } else {
+          setUserProfile(null);
+        }
+      } catch (e) {
+        console.error("Profile fetch error:", e);
+        setUserProfile(null);
+      } finally {
+        setIsReady(true);
+      }
+    };
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      fetchAndSetProfile(session?.user?.id);
+    });
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      fetchAndSetProfile(session?.user?.id);
+    });
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, [setUserProfile, syncActiveLeague]);
+
+  // navigasyon kontrolü
+  useEffect(() => {
+    if (!isReady) return;
+
+    const inAuthGroup = segments[0] === '(auth)';
+
+    if (!userProfile && !inAuthGroup) {
+      router.replace('/(auth)/login');
+    } else if (userProfile && inAuthGroup) {
+      router.replace('/(tabs)');
     }
-  }, [loaded]);
+  }, [userProfile, segments, isReady]);
 
-  if (!loaded) {
-    return null;
+  if (!isReady) {
+    return (
+      <View style={{ flex: 1, backgroundColor: '#0b0e11', justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator color="#00ff85" size="large" />
+      </View>
+    );
   }
 
-  return <RootLayoutNav />;
-}
-
-function RootLayoutNav() {
-  const colorScheme = useColorScheme();
-
+  // tablar herzaman erişeilebilir
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-      </Stack>
-    </ThemeProvider>
+    <SafeAreaProvider>
+      <QueryClientProvider client={queryClient}>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="(auth)/login" />
+          <Stack.Screen name="(tabs)" />
+        </Stack>
+      </QueryClientProvider>
+    </SafeAreaProvider>
   );
 }

@@ -1,31 +1,49 @@
-import { StyleSheet } from 'react-native';
+import { FullScreenLoading } from '@/components/common/FullScreenLoading';
+import { DashboardView } from '@/components/home/DashboardView';
+import { EntryView } from '@/components/home/EntryView';
+import { useInitialCheck } from '@/hooks/useInitialCheck';
+import { useLeagueDetails, useStandings } from '@/hooks/useLeagueData';
+import { useLeagueStore } from '@/store/useLeagueStore';
+import React from 'react';
 
-import EditScreenInfo from '@/components/EditScreenInfo';
-import { Text, View } from '@/components/Themed';
+export default function HomeScreen() {
+  const { currentLeagueId } = useLeagueStore();
+  const { isChecking } = useInitialCheck();
 
-export default function TabOneScreen() {
+  // dataları merkezi tiplerle çekiyoruz
+  const { 
+    data: league, 
+    isLoading: leagueLoading, 
+    refetch: refetchLeague 
+  } = useLeagueDetails(currentLeagueId);
+
+  const { 
+    data: standings, 
+    isLoading: standingsLoading, 
+    refetch: refetchStandings 
+  } = useStandings(currentLeagueId);
+
+  // hem ligi hem puan durumunu yeniler
+  const handleRefresh = async () => {
+    await Promise.all([refetchLeague(), refetchStandings()]);
+  };
+
+  // sistem kontrolü veya veri yükleniyorsa loading göster
+  if (isChecking || (currentLeagueId && (leagueLoading || standingsLoading))) {
+    return <FullScreenLoading message="Veriler Senkronize Ediliyor..." />;
+  }
+
+  // user bir lige dahil değilse giriş ekranı
+  if (!currentLeagueId) {
+    return <EntryView />;
+  }
+
+  // aktif lig varsa dashboarda yönlendir
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Tab One</Text>
-      <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-      <EditScreenInfo path="app/(tabs)/index.tsx" />
-    </View>
+    <DashboardView 
+      league={league} 
+      standings={standings || []} 
+      onRefresh={handleRefresh} 
+    />
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  separator: {
-    marginVertical: 30,
-    height: 1,
-    width: '80%',
-  },
-});
