@@ -1,4 +1,4 @@
-export type LeagueStatus = 'lobby' | 'active' | 'finished';
+export type LeagueStatus = 'lobby' | 'active' | 'completed';
 export type MatchStatus = 'pending' | 'completed';
 
 export interface Profile {

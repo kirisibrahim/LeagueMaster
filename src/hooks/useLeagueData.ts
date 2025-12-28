@@ -3,7 +3,7 @@ import { League, Match, Participant } from '@/types/database';
 import { handleAppError } from '@/utils/errorHandler';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-// 1. Puan Durumunu Çeken Hook
+// puan durumu çeken hook
 export const useStandings = (leagueId: string | null) => {
   return useQuery<Participant[]>({
     queryKey: ['standings', leagueId],
@@ -24,7 +24,7 @@ export const useStandings = (leagueId: string | null) => {
   });
 };
 
-// 2. Lig Detaylarını Çeken Hook
+// lig detaylarını çeken hook
 export const useLeagueDetails = (leagueId: string | null) => {
   return useQuery<League | null>({
     queryKey: ['league_details', leagueId],
@@ -44,7 +44,7 @@ export const useLeagueDetails = (leagueId: string | null) => {
   });
 };
 
-// 3. Sıradaki Oynanacak Maçı Çeken Hook
+// sıradaki oynanacak maçı çeken hook
 export const useNextMatch = (leagueId: string | null) => {
   return useQuery<Match | null>({
     queryKey: ['nextMatch', leagueId],
@@ -62,7 +62,7 @@ export const useNextMatch = (leagueId: string | null) => {
 
       if (matchError || !match) return null;
 
-      // Katılımcı bilgilerini çekiyoruz
+      // katılımcı bilgilerini çek
       const { data: participants, error: pError } = await supabase
         .from('league_participants')
         .select('user_id, team_name, profiles(username)')
@@ -81,7 +81,7 @@ export const useNextMatch = (leagueId: string | null) => {
   });
 };
 
-// 4. Tüm Fikstürü Çeken Hook
+// tüm fikstürü çeken hook
 export const useFullFixture = (leagueId: string | null) => {
   return useQuery<Match[]>({
     queryKey: ['fullFixture', leagueId],
@@ -111,7 +111,7 @@ export const useFullFixture = (leagueId: string | null) => {
   });
 };
 
-// 5. Skor Güncelleme Mutation (MOTM Destekli)
+// skor güncelleme mutasyon motm destekki
 export const useUpdateMatchScore = () => {
   const queryClient = useQueryClient();
 
@@ -120,7 +120,7 @@ export const useUpdateMatchScore = () => {
       matchId,
       homeScore,
       awayScore,
-      motmId // Yeni eklenen parametre
+      motmId
     }: {
       matchId: string;
       homeScore: number;
@@ -134,15 +134,15 @@ export const useUpdateMatchScore = () => {
           away_score: awayScore,
           is_completed: true,
           status: 'completed',
-          motm_user_id: motmId, // Veritabanındaki yeni sütun
-          played_at: new Date().toISOString() // Maçın tamamlanma zamanını eklemek raporlama için iyidir
+          motm_user_id: motmId,
+          played_at: new Date().toISOString() // raporlama için maçın tamamlanma zamanı
         })
         .eq('id', matchId);
 
       if (error) throw error;
     },
     onSuccess: async () => {
-      // Tüm ilgili verileri paralel olarak yenile
+      // ilgili verileri paralel olarak yenile
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['nextMatch'] }),
         queryClient.invalidateQueries({ queryKey: ['standings'] }),
@@ -154,7 +154,7 @@ export const useUpdateMatchScore = () => {
   });
 };
 
-// 6. Maçı Geri Al (Undo) Mutation (YENİ)
+// meaçı geri al mutasyon
 export const useUndoMatch = () => {
   const queryClient = useQueryClient();
 
@@ -163,7 +163,7 @@ export const useUndoMatch = () => {
       const { error } = await supabase
         .from('matches')
         .update({
-          home_score: 0, // null yerine 0 daha güvenlidir
+          home_score: 0,
           away_score: 0,
           is_completed: false,
           status: 'pending'
@@ -173,16 +173,16 @@ export const useUndoMatch = () => {
       if (error) throw error;
     },
     onSuccess: async () => {
-      // Tüm sorguları aynı anda ve bekleyerek yenile
+      // tüm sorguları aynı anda ve bekleyerek yenile
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['nextMatch'] }),
         queryClient.invalidateQueries({ queryKey: ['standings'] }),
         queryClient.invalidateQueries({ queryKey: ['fullFixture'] }),
         queryClient.invalidateQueries({ queryKey: ['league_details'] }),
-        // Kişisel maç geçmişini de tazele
+        // kişisel maç geçmişini de tazele
         queryClient.invalidateQueries({ queryKey: ['user-matches'], exact: false })
       ]);
-      console.log("Maç geri alındı ve veriler tazelendi.");
+      // console.log("Maç geri alındı ve veriler tazelendi.");
     },
     onError: (error: any) => {
       handleAppError(error, "UndoMatch");

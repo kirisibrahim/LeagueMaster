@@ -66,7 +66,7 @@ export default function LobbyView({ league, isAdmin, onRefresh }: Props) {
 
       if (error) throw error;
 
-      // reac query e yenileme emri
+      // react query ye yenileme emri
       await queryClient.invalidateQueries({ queryKey: ['league_details'] });
       await queryClient.invalidateQueries({ queryKey: ['nextMatch'] });
       await queryClient.invalidateQueries({ queryKey: ['standings'] });

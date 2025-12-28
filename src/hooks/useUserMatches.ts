@@ -1,6 +1,6 @@
 import { supabase } from '@/api/supabase';
 import { useLeagueStore } from '@/store/useLeagueStore';
-import { Match, Participant } from '@/types/database';
+import { Match } from '@/types/database';
 import { useQuery } from '@tanstack/react-query';
 
 export const useUserMatches = () => {
@@ -8,44 +8,45 @@ export const useUserMatches = () => {
     const currentLeagueId = useLeagueStore((state) => state.currentLeagueId);
 
     return useQuery({
-        queryKey: ['user-matches', userProfile?.id, currentLeagueId],
+        queryKey: ['user-matches', currentLeagueId, userProfile?.id],
         enabled: !!userProfile?.id && !!currentLeagueId,
         queryFn: async () => {
-            // 1. Paralel Veri Çekme (Performans için aynı anda başlatıyoruz)
+            if (!currentLeagueId) return [];
+
             const [matchesResponse, participantsResponse] = await Promise.all([
                 supabase
                     .from('matches')
                     .select('*')
                     .eq('league_id', currentLeagueId)
                     .or(`home_user_id.eq.${userProfile?.id},away_user_id.eq.${userProfile?.id}`)
-                    .order('match_order', { ascending: false }),
-
+                    .order('match_order', { ascending: true }),
                 supabase
                     .from('league_participants')
-                    .select('*')
+                    .select(`
+                        *,
+                        profiles (
+                            username,
+                            avatar_url
+                        )
+                    `) // Profiles tablosunu join yaparak kullanıcı adını aldık
                     .eq('league_id', currentLeagueId)
             ]);
 
             if (matchesResponse.error) throw matchesResponse.error;
-            if (participantsResponse.error) throw participantsResponse.error;
+            const participantMap = new Map(participantsResponse.data?.map(p => [p.user_id, p]) || []);
 
-            const rawMatches = matchesResponse.data as Match[];
-            const participants = participantsResponse.data as Participant[];
-
-            // 2. Data Mapping (O(1) hızında erişim için katılımcıları sözlüğe çeviriyoruz)
-            // Senior Notu: Dizi içinde find yapmak yerine Map kullanmak büyük veride daha hızlıdır.
-            const participantMap = new Map(participants.map(p => [p.user_id, p]));
-
-            const enrichedMatches: Match[] = rawMatches.map(match => ({
+            return matchesResponse.data.map(match => ({
                 ...match,
                 home_participant: participantMap.get(match.home_user_id),
                 away_participant: participantMap.get(match.away_user_id)
-            }));
-
-            return enrichedMatches;
+            })) as Match[];
         },
-        staleTime: 0, // Veri alındığı an stale kabul edilir.
-        gcTime: 1000 * 60 * 30, // Cache'i hafızada 30 dk tut ama taze sayma.
-        refetchOnMount: true, // Bileşen her render olduğunda (ekran açıldığında) kontrol et.
+        // Veriyi sadece mevcut lig ID'sine uygunsa teslim et
+        select: (data) => {
+            if (!currentLeagueId) return [];
+            return data.filter(m => String(m.league_id) === String(currentLeagueId));
+        },
+        staleTime: 0,
+        gcTime: 0,
     });
 };

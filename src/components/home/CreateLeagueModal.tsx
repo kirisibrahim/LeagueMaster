@@ -16,13 +16,14 @@ interface Props {
 export default function CreateLeagueModal({ visible, onClose }: Props) {
   const [form, setForm] = useState({
     name: '',
+    teamName: '',
     winPoints: '3',
     drawPoints: '1',
     lossPoints: '0',
     type: 'league',
-    isDoubleRound: false 
+    isDoubleRound: false
   });
-  
+
   // hooktan fonksiyon ve yükleme durumunu alıyoruız
   const { createLeague, isSubmitting } = useLeagueActions();
 
@@ -38,13 +39,13 @@ export default function CreateLeagueModal({ visible, onClose }: Props) {
 
   return (
     <Modal visible={visible} animationType="slide" transparent={true}>
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         className="flex-1 bg-black/80"
       >
         <StyledView className="flex-1 justify-end">
           <StyledView className="bg-[#1a1d23] rounded-t-[40px] p-6 border-t border-gray-800" style={{ height: '85%' }}>
-            
+
             {/* Header */}
             <StyledView className="flex-row justify-between items-center mb-6">
               <StyledView>
@@ -59,12 +60,22 @@ export default function CreateLeagueModal({ visible, onClose }: Props) {
             <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
               {/* LİG ADI */}
               <StyledText className="text-gray-500 text-[10px] font-black mb-2 uppercase">Lig İsmi</StyledText>
-              <StyledInput 
+              <StyledInput
                 className="bg-[#0b0e11] text-white p-4 rounded-2xl mb-6 border border-gray-800 font-bold"
                 placeholder="Örn: Master Premier League"
                 placeholderTextColor="#444"
                 value={form.name}
                 onChangeText={(val) => updateForm('name', val)}
+              />
+
+              {/* TAKIM ADI */}
+              <StyledText className="text-[#00ff85] text-[10px] font-black mb-2 uppercase">Bu Turnuvadaki Takımın</StyledText>
+              <StyledInput
+                className="bg-[#0b0e11] text-white p-4 rounded-2xl mb-6 border border-[#00ff85]/30 font-bold"
+                placeholder="Örn: Real Madrid"
+                placeholderTextColor="#444"
+                value={form.teamName}
+                onChangeText={(val) => updateForm('teamName', val)}
               />
 
               {/* PUANLAMA */}
@@ -79,7 +90,7 @@ export default function CreateLeagueModal({ visible, onClose }: Props) {
                     ].map((item) => (
                       <StyledView key={item.key} className="w-[31%] bg-[#0b0e11] p-3 rounded-2xl border border-gray-800 items-center">
                         <StyledText className="text-gray-600 text-[8px] font-black mb-1">{item.label}</StyledText>
-                        <StyledInput 
+                        <StyledInput
                           className="text-white font-black text-xl text-center"
                           keyboardType="numeric"
                           value={form[item.key as keyof typeof form] as string}
@@ -91,13 +102,13 @@ export default function CreateLeagueModal({ visible, onClose }: Props) {
 
                   <StyledText className="text-gray-500 text-[10px] font-black mb-3 uppercase">Fikstür Formatı</StyledText>
                   <StyledView className="flex-row gap-x-3 mb-10">
-                    <TouchableOpacity 
+                    <TouchableOpacity
                       onPress={() => updateForm('isDoubleRound', false)}
                       className={`flex-1 p-4 rounded-2xl border-2 items-center ${!form.isDoubleRound ? 'border-[#00ff85] bg-[#00ff85]/5' : 'border-gray-800 bg-[#0b0e11]'}`}
                     >
                       <StyledText className={`font-black text-[10px] ${!form.isDoubleRound ? 'text-[#00ff85]' : 'text-gray-600'}`}>TEK MAÇ</StyledText>
                     </TouchableOpacity>
-                    <TouchableOpacity 
+                    <TouchableOpacity
                       onPress={() => updateForm('isDoubleRound', true)}
                       className={`flex-1 p-4 rounded-2xl border-2 items-center ${form.isDoubleRound ? 'border-[#00ff85] bg-[#00ff85]/5' : 'border-gray-800 bg-[#0b0e11]'}`}
                     >
@@ -108,7 +119,7 @@ export default function CreateLeagueModal({ visible, onClose }: Props) {
               )}
 
               {/* ACTION BUTTON */}
-              <TouchableOpacity 
+              <TouchableOpacity
                 disabled={isSubmitting}
                 onPress={handleCreate}
                 className={`p-5 rounded-3xl mb-10 ${isSubmitting ? 'bg-gray-800' : 'bg-[#00ff85]'}`}

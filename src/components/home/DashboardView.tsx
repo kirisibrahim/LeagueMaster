@@ -1,10 +1,11 @@
+import { useLeagueActions } from '@/hooks/useLeagueActions';
 import { useFullFixture, useNextMatch, useUpdateMatchScore } from '@/hooks/useLeagueData';
 import { useLeagueStore } from '@/store/useLeagueStore';
 import { useUIStore } from '@/store/useUIStore';
 import { League, Participant } from '@/types/database';
 import { styled } from 'nativewind';
 import React, { useState } from 'react';
-import { ActivityIndicator, RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { FixtureList } from './FixtureList';
 import LobbyView from './LobbyView';
 import { ScoreEntryModal } from './ScoreEntryModal';
@@ -21,23 +22,35 @@ interface Props {
 }
 
 export const DashboardView = ({ league, standings, onRefresh }: Props) => {
-  // state ve store
+  const { finishTournament, isSubmitting } = useLeagueActions();
   const [activeTab, setActiveTab] = useState<'standings' | 'fixture'>('standings');
   const userProfile = useLeagueStore((state) => state.userProfile);
-
   // data ve hooks
   const { data: nextMatch, isLoading: isMatchLoading } = useNextMatch(league?.id || null);
   const { data: fullFixture } = useFullFixture(league?.id || null);
-
   // modal management
   const scoreModalVisible = useUIStore((state) => state.scoreModalVisible);
   const { openScoreModal, closeScoreModal } = useUIStore((state) => state.actions);
-
   // mutasyon
   const updateMatch = useUpdateMatchScore();
-
   // admin kontrolü
   const isAdmin = league?.admin_id === userProfile?.id;
+  const handleFinishPress = () => {
+    if (!league?.id) return;
+
+    Alert.alert(
+      "Turnuvayı Resmen Kapat",
+      "Bu işlemle tüm istatistikler oyuncuların profillerine (Kariyer Kartlarına) kalıcı olarak işlenecek. Lig durumu 'Arşivlendi' olarak güncellenecek. Hazır mısın?",
+      [
+        { text: "Vazgeç", style: "cancel" },
+        {
+          text: "Evet, Bitir ve İşle",
+          style: "destructive",
+          onPress: () => finishTournament(league.id)
+        }
+      ]
+    );
+  };
 
   // lobi kontrolü
   if (league?.status === 'lobby') {
@@ -153,6 +166,18 @@ export const DashboardView = ({ league, standings, onRefresh }: Props) => {
                 </StyledView>
               </StyledView>
 
+              {isAdmin && league?.status === 'active' && (
+                <StyledTouch
+                  onPress={handleFinishPress}
+                  disabled={isSubmitting}
+                  className="mt-8 bg-[#00ff85] px-8 py-4 rounded-[25px] shadow-2xl shadow-[#00ff85]/40 active:opacity-80"
+                >
+                  <StyledText className="text-black font-black uppercase italic tracking-widest text-[11px]">
+                    {isSubmitting ? "VERİLER İŞLENİYOR..." : "🏆 TURNUVAYI RESMEN BİTİR"}
+                  </StyledText>
+                </StyledTouch>
+              )}
+
               <StyledView className="mt-6 flex-row items-center bg-[#00ff85]/5 px-4 py-2 rounded-full border border-[#00ff85]/10">
                 <StyledView className="w-1.5 h-1.5 rounded-full bg-[#00ff85] mr-2 animate-pulse" />
                 <StyledText className="text-[#00ff85]/60 font-black text-[9px] uppercase tracking-[2px]">
@@ -195,15 +220,23 @@ export const DashboardView = ({ league, standings, onRefresh }: Props) => {
 
                 <StyledView className="flex-1 ml-2">
                   <StyledView className="flex-row items-center">
-                    <StyledText className="text-white font-bold text-sm uppercase tracking-tight">{item.team_name}</StyledText>
-                    {/* MOTM Yıldız İkonu - Sadece en az 1 MOTM'u varsa gösterir */}
+                    {/* 1. Takım İsmi - Ana Odak */}
+                    <StyledText className="text-white font-black text-[13px] uppercase tracking-tighter">
+                      {item.team_name}
+                    </StyledText>
+
+                    {/* MOTM Yıldız İkonu */}
                     {(item.motm_count || 0) > 0 && (
                       <StyledView className="ml-2 bg-[#f1c40f]/20 px-1.5 py-0.5 rounded-md border border-[#f1c40f]/30">
                         <StyledText className="text-[#f1c40f] text-[9px] font-black">⭐ {item.motm_count}</StyledText>
                       </StyledView>
                     )}
                   </StyledView>
-                  <StyledText className="text-gray-600 text-[8px] font-bold uppercase">@{item.profiles?.username}</StyledText>
+
+                  {/* 2. Kullanıcı Adı - İkincil Bilgi */}
+                  <StyledText className="text-[#00ff85] text-[9px] font-bold uppercase tracking-widest mt-0.5 opacity-80">
+                    @{item.profiles?.username}
+                  </StyledText>
                 </StyledView>
 
                 <StyledView className="flex-row items-center">
@@ -227,7 +260,7 @@ export const DashboardView = ({ league, standings, onRefresh }: Props) => {
         visible={scoreModalVisible}
         onClose={closeScoreModal}
         nextMatch={nextMatch}
-        onSave={(h, a, motmId) => { // motmId parametresini ekledik
+        onSave={(h, a, motmId) => {
           if (nextMatch) {
             updateMatch.mutate({
               matchId: nextMatch.id,

@@ -10,7 +10,7 @@ export function useLobby(leagueId: string | null) {
     queryFn: async () => {
       if (!leagueId) return null;
 
-      // Performans için iki sorguyu aynı anda başlatıyoruz
+      // performan için iki sorgu aynı anda
       const [leagueRes, participantsRes] = await Promise.all([
         supabase.from('leagues').select('*').eq('id', leagueId).single(),
         supabase.from('league_participants').select('*').eq('league_id', leagueId)
@@ -27,11 +27,11 @@ export function useLobby(leagueId: string | null) {
     staleTime: 1000 * 60 * 5,
   });
 
-  // Realtime Dinleyici: Katılımcı veya Lig durumu değiştiğinde Dashboard'u tetikler
+  // Realtime Dinleyici: katılımcı veya lig durumu değiştiğinde dashboardu tetikler
   useEffect(() => {
     if (!leagueId) return;
 
-    console.log("Realtime dinleyici başlatıldı, Lig ID:", leagueId);
+    // console.log("Realtime dinleyici başlatıldı, Lig ID:", leagueId);
 
     const channel = supabase
       .channel(`lobby-realtime-${leagueId}`)
@@ -44,7 +44,7 @@ export function useLobby(leagueId: string | null) {
           filter: `league_id=eq.${leagueId}`
         },
         (payload) => {
-          console.log("Katılımcı değişikliği sinyali geldi:", payload);
+          // console.log("Katılımcı değişikliği sinyali geldi:", payload);
           queryClient.invalidateQueries({ queryKey: ['lobby', leagueId] });
           queryClient.invalidateQueries({ queryKey: ['standings', leagueId] });
         }
@@ -58,10 +58,10 @@ export function useLobby(leagueId: string | null) {
           filter: `id=eq.${leagueId}`
         },
         (payload) => {
-          console.log("!!! LİG DURUMU GÜNCELLENDİ (LOBİ -> AKTİF) !!!", payload);
+          // console.log("!!! LİG DURUMU GÜNCELLENDİ (LOBİ -> AKTİF) !!!", payload);
 
-          // 1. ÖNEMLİ: Kendi verisini (lobby query) güncelle! 
-          // DashboardView'daki 'lobbyData' buradan besleniyor.
+          // Kendi verisini (lobby query) güncelle!
+          // DashboardView daki lobbyData buradan besleniyor.
           queryClient.setQueryData(['lobby', leagueId], (oldData: any) => {
             if (!oldData) return oldData;
             return {
@@ -70,21 +70,21 @@ export function useLobby(leagueId: string | null) {
             };
           });
 
-          // 2. Diğer anahtarı da güncelle (DashboardView'daki 'league' değişkeni için)
+          // diğer anahtarı da güncelle (DashboardView'daki 'league' değişkeni için)
           queryClient.setQueryData(['league_details', leagueId], payload.new);
 
-          // 3. Tüm sistemi sars
+          // sistemi sars
           queryClient.invalidateQueries({ queryKey: ['lobby', leagueId] });
           queryClient.invalidateQueries({ queryKey: ['league_details', leagueId] });
           queryClient.invalidateQueries({ queryKey: ['nextMatch', leagueId] });
         }
       )
       .subscribe((status) => {
-        console.log("Realtime bağlantı durumu:", status);
+        // console.log("Realtime bağlantı durumu:", status);
       });
 
     return () => {
-      console.log("Realtime kanalı kapatılıyor...");
+      // console.log("Realtime kanalı kapatılıyor...");
       supabase.removeChannel(channel);
     };
   }, [leagueId, queryClient]);

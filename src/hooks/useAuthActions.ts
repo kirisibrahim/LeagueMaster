@@ -11,18 +11,17 @@ export const useAuthActions = () => {
 
   const handleSignOut = async () => {
     try {
-      // 1. Supabase oturumunu kapat (Sunucu tarafı)
+      // supabase oturumunu kapat
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
 
-      // 2. Zustand Store'u sıfırla (Bellek temizliği)
+      // zustand store sıfırla / bellek temizle
       logoutStore();
 
-      // 3. TanStack Query Cache'ini uçur (Eski lig verileri/puan durumu silinir)
+      // tanstack cache temizle
       queryClient.clear();
 
-      // 4. Kullanıcıyı giriş ekranına yönlendir
-      // Not: Eğer (auth) grubun varsa oraya yönlendir
+      // giriş ekranına yönlendir
       router.replace('/(auth)/login'); 
 
     } catch (error: any) {

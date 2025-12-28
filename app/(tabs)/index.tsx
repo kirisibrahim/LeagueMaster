@@ -11,16 +11,16 @@ export default function HomeScreen() {
   const { isChecking } = useInitialCheck();
 
   // dataları merkezi tiplerle çekiyoruz
-  const { 
-    data: league, 
-    isLoading: leagueLoading, 
-    refetch: refetchLeague 
+  const {
+    data: league,
+    isLoading: leagueLoading,
+    refetch: refetchLeague
   } = useLeagueDetails(currentLeagueId);
 
-  const { 
-    data: standings, 
-    isLoading: standingsLoading, 
-    refetch: refetchStandings 
+  const {
+    data: standings,
+    isLoading: standingsLoading,
+    refetch: refetchStandings
   } = useStandings(currentLeagueId);
 
   // hem ligi hem puan durumunu yeniler
@@ -34,16 +34,16 @@ export default function HomeScreen() {
   }
 
   // user bir lige dahil değilse giriş ekranı
-  if (!currentLeagueId) {
+  if (!currentLeagueId || league?.status === 'completed') {
     return <EntryView />;
   }
 
   // aktif lig varsa dashboarda yönlendir
   return (
-    <DashboardView 
-      league={league} 
-      standings={standings || []} 
-      onRefresh={handleRefresh} 
+    <DashboardView
+      league={league}
+      standings={standings || []}
+      onRefresh={handleRefresh}
     />
   );
 }
