@@ -1,4 +1,5 @@
 import { supabase } from '@/api/supabase';
+import { GlobalAlert } from '@/components/common/GlobalAlert';
 import { useLeagueStore } from '@/store/useLeagueStore';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Stack, useRouter, useSegments } from 'expo-router';
@@ -89,6 +90,7 @@ export default function RootLayout() {
           <Stack.Screen name="(auth)/login" />
           <Stack.Screen name="(tabs)" />
         </Stack>
+        <GlobalAlert />
       </QueryClientProvider>
     </SafeAreaProvider>
   );
