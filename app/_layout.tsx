@@ -1,7 +1,9 @@
 import { supabase } from '@/api/supabase';
 import { GlobalAlert } from '@/components/common/GlobalAlert';
 import { useLeagueStore } from '@/store/useLeagueStore';
+import { useNotificationStore } from '@/store/useNotificationStore';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import * as Linking from 'expo-linking';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
@@ -13,19 +15,37 @@ export default function RootLayout() {
   const setUserProfile = useLeagueStore((state) => state.setUserProfile);
   const userProfile = useLeagueStore((state) => state.userProfile);
   const syncActiveLeague = useLeagueStore((state) => state.syncActiveLeague);
+  const showNotification = useNotificationStore((state) => state.showNotification);
 
   const segments = useSegments();
   const router = useRouter();
+  
+  // Uygulamanın yönlendirme yapmaya hazır olup olmadığını tutar
   const [isReady, setIsReady] = useState(false);
+  
+  const url = Linking.useURL();
 
-  // profil ve aktif lig senkrenizasyonu
+  // 1. Deep Linking Kontrolü
+  useEffect(() => {
+    if (url) {
+      const { hostname, path } = Linking.parse(url);
+      if (path === 'confirm' || hostname === 'confirm') {
+        showNotification("E-posta onaylandı! Arenaya giriş yapabilirsin.", "success");
+        router.replace('/(auth)/login');
+      }
+    }
+  }, [url]);
+
+  // 2. Profil ve Oturum Yönetimi
   useEffect(() => {
     const fetchAndSetProfile = async (userId: string | undefined) => {
+      // Eğer kullanıcı ID yoksa işlemi bitir ve ready yap
       if (!userId) {
         setUserProfile(null);
         setIsReady(true);
         return;
       }
+
       try {
         const { data: profile, error } = await supabase
           .from('profiles')
@@ -35,7 +55,6 @@ export default function RootLayout() {
 
         if (!error && profile) {
           setUserProfile(profile);
-          // giriş yapılmışsa lig bilgisini arka planda yenile
           await syncActiveLeague(profile.id);
         } else {
           setUserProfile(null);
@@ -44,36 +63,54 @@ export default function RootLayout() {
         console.error("Profile fetch error:", e);
         setUserProfile(null);
       } finally {
+        // İşlem bittikten sonra yönlendirmeye izin ver
         setIsReady(true);
       }
     };
 
+    // İlk oturumu kontrol et
     supabase.auth.getSession().then(({ data: { session } }) => {
       fetchAndSetProfile(session?.user?.id);
     });
 
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
-      fetchAndSetProfile(session?.user?.id);
+    // Oturum değişikliklerini dinle
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      // Giriş yapıldığında veya oturum yenilendiğinde tekrar profil çek
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        fetchAndSetProfile(session?.user?.id);
+      } else if (event === 'SIGNED_OUT') {
+        setUserProfile(null);
+        setIsReady(true);
+      }
     });
 
     return () => {
       authListener.subscription.unsubscribe();
     };
-  }, [setUserProfile, syncActiveLeague]);
+  }, []);
 
-  // navigasyon kontrolü
+  // 3. Navigasyon Kontrolü (Gidip gelmeyi engelleyen kısım)
   useEffect(() => {
+    // Profil verisi gelene veya session kesinleşene kadar bekle
     if (!isReady) return;
 
     const inAuthGroup = segments[0] === '(auth)';
 
-    if (!userProfile && !inAuthGroup) {
-      router.replace('/(auth)/login');
-    } else if (userProfile && inAuthGroup) {
-      router.replace('/(tabs)');
+    // Durum Analizi:
+    if (userProfile) {
+      // Kullanıcı varsa ve hala login/register sayfalarındaysa dashboard'a at
+      if (inAuthGroup) {
+        router.replace('/(tabs)');
+      }
+    } else {
+      // Kullanıcı yoksa ve auth grubu dışında bir yerdeyse login'e çek
+      if (!inAuthGroup) {
+        router.replace('/(auth)/login');
+      }
     }
   }, [userProfile, segments, isReady]);
 
+  // Yükleme ekranı (isReady olana kadar kullanıcı bunu görür)
   if (!isReady) {
     return (
       <View style={{ flex: 1, backgroundColor: '#0b0e11', justifyContent: 'center', alignItems: 'center' }}>
@@ -82,7 +119,6 @@ export default function RootLayout() {
     );
   }
 
-  // tablar herzaman erişeilebilir
   return (
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>

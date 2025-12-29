@@ -6,6 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/images/logo_main.png",
     "scheme": "leaguemaster",
+    "platforms": ["ios", "android", "web"],
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
