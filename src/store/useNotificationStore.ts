@@ -1,25 +1,62 @@
 import { create } from 'zustand';
 
-type NotificationType = 'error' | 'success' | 'info';
+type NotificationType = 'error' | 'success' | 'info' | 'confirm';
+
+interface ActionButton {
+  text: string;
+  onPress: () => void;
+  style?: 'default' | 'destructive' | 'cancel';
+}
 
 interface NotificationState {
+  title: string | null;
   message: string | null;
   type: NotificationType;
   isVisible: boolean;
+  buttons: ActionButton[]; // Onay butonları için dizi
+  
+  // Basit Toast bildirimi (mevcut yapın)
   showNotification: (message: string, type?: NotificationType) => void;
+  
+  // Detaylı Onay bildirimi (yeni yapın)
+  showConfirm: (title: string, message: string, buttons: ActionButton[]) => void;
+  
   hideNotification: () => void;
 }
 
 export const useNotificationStore = create<NotificationState>((set) => ({
+  title: null,
   message: null,
   type: 'error',
   isVisible: false,
+  buttons: [],
+
   showNotification: (message, type = 'error') => {
-    set({ message, type, isVisible: true });
-    // 4 saniye sonra otomatik kapat
-    setTimeout(() => {
-      set({ isVisible: false });
-    }, 4000);
+    set({ 
+      message, 
+      type, 
+      isVisible: true, 
+      title: null, 
+      buttons: [] // Toast modunda buton olmaz
+    });
+    
+    // Sadece Toast (error, success, info) ise otomatik kapat
+    if (type !== 'confirm') {
+      setTimeout(() => {
+        set((state) => (state.message === message ? { isVisible: false } : state));
+      }, 4000);
+    }
   },
-  hideNotification: () => set({ isVisible: false }),
+
+  showConfirm: (title, message, buttons) => {
+    set({
+      title,
+      message,
+      type: 'confirm',
+      isVisible: true,
+      buttons, // Dışarıdan gelen butonlar
+    });
+  },
+
+  hideNotification: () => set({ isVisible: false, buttons: [] }),
 }));

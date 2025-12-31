@@ -5,27 +5,28 @@ import { useNotificationStore } from '@/store/useNotificationStore';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import * as Linking from 'expo-linking';
 import { Stack, useRouter, useSegments } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+SplashScreen.preventAutoHideAsync();
 const queryClient = new QueryClient();
 
 export default function RootLayout() {
   const setUserProfile = useLeagueStore((state) => state.setUserProfile);
   const userProfile = useLeagueStore((state) => state.userProfile);
   const syncActiveLeague = useLeagueStore((state) => state.syncActiveLeague);
-  const showNotification = useNotificationStore((state) => state.showNotification);
+  // KRİTİK: currentLeagueId'yi reaktif bir şekilde buraya çekiyoruz
+  const currentLeagueId = useLeagueStore((state) => state.currentLeagueId);
 
+  const showNotification = useNotificationStore((state) => state.showNotification);
   const segments = useSegments();
   const router = useRouter();
-  
-  // Uygulamanın yönlendirme yapmaya hazır olup olmadığını tutar
   const [isReady, setIsReady] = useState(false);
-  
   const url = Linking.useURL();
 
-  // 1. Deep Linking Kontrolü
+  // 1. Deep Linking (Değişmedi)
   useEffect(() => {
     if (url) {
       const { hostname, path } = Linking.parse(url);
@@ -36,10 +37,9 @@ export default function RootLayout() {
     }
   }, [url]);
 
-  // 2. Profil ve Oturum Yönetimi
+  // 2. Profil ve Oturum Yönetimi (Hata yönetimi güçlendirildi)
   useEffect(() => {
     const fetchAndSetProfile = async (userId: string | undefined) => {
-      // Eğer kullanıcı ID yoksa işlemi bitir ve ready yap
       if (!userId) {
         setUserProfile(null);
         setIsReady(true);
@@ -55,6 +55,7 @@ export default function RootLayout() {
 
         if (!error && profile) {
           setUserProfile(profile);
+          // Lig verisini bekliyoruz
           await syncActiveLeague(profile.id);
         } else {
           setUserProfile(null);
@@ -63,19 +64,15 @@ export default function RootLayout() {
         console.error("Profile fetch error:", e);
         setUserProfile(null);
       } finally {
-        // İşlem bittikten sonra yönlendirmeye izin ver
         setIsReady(true);
       }
     };
 
-    // İlk oturumu kontrol et
     supabase.auth.getSession().then(({ data: { session } }) => {
       fetchAndSetProfile(session?.user?.id);
     });
 
-    // Oturum değişikliklerini dinle
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      // Giriş yapıldığında veya oturum yenilendiğinde tekrar profil çek
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
         fetchAndSetProfile(session?.user?.id);
       } else if (event === 'SIGNED_OUT') {
@@ -84,34 +81,39 @@ export default function RootLayout() {
       }
     });
 
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
+    return () => authListener.subscription.unsubscribe();
   }, []);
 
-  // 3. Navigasyon Kontrolü (Gidip gelmeyi engelleyen kısım)
+  // 3. Navigasyon ve Sıçrama Engelleme Mantığı (SENIOR REVIZE)
   useEffect(() => {
-    // Profil verisi gelene veya session kesinleşene kadar bekle
-    if (!isReady) return;
+    // BARAJ 1: Sistem hazır değilse veya lig verisi henüz yoldaysa (undefined) ASLA hareket etme.
+    if (!isReady || currentLeagueId === undefined) return;
 
     const inAuthGroup = segments[0] === '(auth)';
 
-    // Durum Analizi:
+    // BARAJ 2: Kullanıcı oturumu kontrolü
     if (userProfile) {
-      // Kullanıcı varsa ve hala login/register sayfalarındaysa dashboard'a at
+      // Kullanıcı var ama hala login/register sayfalarındaysa içeri (tabs) fırlat
       if (inAuthGroup) {
         router.replace('/(tabs)');
       }
     } else {
-      // Kullanıcı yoksa ve auth grubu dışında bir yerdeyse login'e çek
+      // Kullanıcı yoksa ve içerideki sayfalardaysa login'e çek
       if (!inAuthGroup) {
         router.replace('/(auth)/login');
       }
     }
-  }, [userProfile, segments, isReady]);
+  }, [userProfile, segments, isReady, currentLeagueId]);
 
-  // Yükleme ekranı (isReady olana kadar kullanıcı bunu görür)
-  if (!isReady) {
+  // 4. SplashScreen Kontrolü
+  useEffect(() => {
+    if (isReady && (userProfile ? currentLeagueId !== undefined : true)) {
+      SplashScreen.hideAsync();
+    }
+  }, [isReady, userProfile, currentLeagueId]);
+
+  // Yükleme ekranı (isReady veya veriler eksikse kullanıcı bunu görür)
+  if (!isReady || (userProfile && currentLeagueId === undefined)) {
     return (
       <View style={{ flex: 1, backgroundColor: '#0b0e11', justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator color="#00ff85" size="large" />

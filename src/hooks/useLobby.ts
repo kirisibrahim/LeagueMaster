@@ -11,9 +11,12 @@ export function useLobby(leagueId: string | null) {
       if (!leagueId) return null;
 
       // performan için iki sorgu aynı anda
+      // useLobby.ts içinde:
       const [leagueRes, participantsRes] = await Promise.all([
         supabase.from('leagues').select('*').eq('id', leagueId).single(),
-        supabase.from('league_participants').select('*').eq('league_id', leagueId)
+        supabase.from('league_participants')
+          .select('*, profiles(username)') // <--- profiles(username) eklendi
+          .eq('league_id', leagueId)
       ]);
 
       if (leagueRes.error) throw leagueRes.error;

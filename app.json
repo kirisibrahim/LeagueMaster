@@ -7,28 +7,24 @@
     "icon": "./assets/images/logo_main.png",
     "scheme": "leaguemaster",
     "platforms": ["ios", "android", "web"],
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "dark",
     "newArchEnabled": true,
-    "splash": {
-      "image": "./assets/images/logo_main.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "userInterfaceStyle": "dark"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/logo_main.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#0b0e11"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
-    "web": {
-      "bundler": "metro",
-      "output": "static",
-      "favicon": "./assets/images/logo_main.png"
+    "splash": {
+      "image": "./assets/images/logo_main.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0b0e11"
     },
     "plugins": [
       "expo-router"

@@ -1,15 +1,16 @@
 import { supabase } from '@/api/supabase';
 import { useLeagueStore } from '@/store/useLeagueStore';
+import { useNotificationStore } from '@/store/useNotificationStore';
 import { LeagueStatus } from '@/types/database';
 import { handleAppError } from '@/utils/errorHandler';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { Alert } from 'react-native';
 
 export const useLeagueActions = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { userProfile, setCurrentLeagueId } = useLeagueStore();
   const queryClient = useQueryClient();
+  const { showNotification, showConfirm } = useNotificationStore();
 
   // lig oluşturrma
   const createLeague = async (form: {
@@ -21,7 +22,7 @@ export const useLeagueActions = () => {
     isDoubleRound: boolean;
   }) => {
     if (!form.name.trim() || !form.teamName.trim()) {
-      Alert.alert('Hata', 'Lütfen bir lig ismini ve kendi takımınızın ismini belirleyin.');
+      showNotification('Lütfen bir lig ismi ve seçtiğiniz takımın ismini belirleyin.');
       return false;
     }
 
@@ -72,16 +73,16 @@ export const useLeagueActions = () => {
   const joinLeague = async (inviteCode: string, teamName: string) => {
     const code = inviteCode.trim().toUpperCase();
     const selectedTeam = teamName.trim();
-    
+
     if (!code) {
-      Alert.alert('Hata', 'Lütfen bir davet kodu girin.');
+      showNotification('Lütfen bir davet kodu girin.');
       return false;
     }
 
     if (!selectedTeam) {
-    Alert.alert('Hata', 'Lütfen bir takım ismi seçin.');
-    return false;
-  }
+      showNotification('Lütfen bir takım ismi seçin.');
+      return false;
+    }
 
     setIsSubmitting(true);
     try {
@@ -100,12 +101,12 @@ export const useLeagueActions = () => {
 
       // kayıt yoksa manuel alert
       if (!league) {
-        Alert.alert('Hata', 'Girdiğiniz davet kodu geçersiz.');
+        showNotification('Girdiğiniz davet kodu geçersiz.');
         return false;
       }
 
       if (league.status !== 'lobby') {
-        Alert.alert('Uyarı', 'Bu lig zaten başlamış veya kapanmış.');
+        showNotification('Bu lig zaten başlamış veya kapanmış.');
         return false;
       }
 
@@ -172,10 +173,7 @@ export const useLeagueActions = () => {
       // store sıfırla
       setCurrentLeagueId(null);
 
-      Alert.alert(
-        "Sezon Finali 🏆",
-        "Tüm veriler başarıyla işlendi ve lig arşive kaldırıldı."
-      );
+      showNotification("🏆 Tüm veriler başarıyla işlendi ve lig arşive kaldırıldı.");
 
       return true;
     } catch (error: any) {
@@ -186,5 +184,59 @@ export const useLeagueActions = () => {
     }
   };
 
-  return { createLeague, joinLeague, finishTournament, isSubmitting };
+  // 1. Ligi tamamen siler (Sadece Admin için)
+  const deleteLeague = async (leagueId: string) => {
+    setIsSubmitting(true);
+    try {
+      const { error } = await supabase
+        .from('leagues')
+        .delete()
+        .eq('id', leagueId);
+
+      if (error) throw error;
+
+      // Önbelleği temizle ve store'u sıfırla
+      queryClient.clear();
+      setCurrentLeagueId(null);
+      return true;
+    } catch (error: any) {
+      handleAppError(error, "DeleteLeague");
+      return false;
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // 2. Katılımcıyı ligden çıkarır (Oyuncu kendisi çıkar)
+  const leaveLeague = async (leagueId: string, userId: string) => {
+    setIsSubmitting(true);
+    try {
+      const { error } = await supabase
+        .from('league_participants')
+        .delete()
+        .eq('league_id', leagueId)
+        .eq('user_id', userId);
+
+      if (error) throw error;
+
+      // Kullanıcıyı ana ekrana döndür
+      queryClient.invalidateQueries({ queryKey: ['lobby', leagueId] });
+      setCurrentLeagueId(null);
+      return true;
+    } catch (error: any) {
+      handleAppError(error, "LeaveLeague");
+      return false;
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return {
+    createLeague,
+    joinLeague,
+    finishTournament,
+    deleteLeague, // <-- Eklendi
+    leaveLeague,  // <-- Eklendi
+    isSubmitting
+  };
 };

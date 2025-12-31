@@ -3,7 +3,7 @@ import { LeagueStatus, Profile } from '@/types/database';
 import { create } from 'zustand';
 
 interface LeagueState {
-  currentLeagueId: string | null;
+  currentLeagueId: string | null | undefined;
   leagueStatus: LeagueStatus | null;
   userProfile: Profile | null;
   isLoading: boolean;
@@ -14,17 +14,17 @@ interface LeagueState {
 }
 
 export const useLeagueStore = create<LeagueState>((set) => ({
-  currentLeagueId: null,
+  currentLeagueId: undefined,
   leagueStatus: null,
   userProfile: null,
-  isLoading: true,
+  isLoading: false,
 
   setCurrentLeagueId: (id) => set({ currentLeagueId: id }),
 
   setUserProfile: (profile) => set({ userProfile: profile }),
 
   syncActiveLeague: async (userId: string) => {
-    set({ isLoading: true });
+    set({ isLoading: true, currentLeagueId: undefined });
     try {
       // kullanıcın nkatıldığı tğm linklerin idleri
       const { data: participations, error: pError } = await supabase
