@@ -19,7 +19,6 @@ export default function MatchesScreen() {
 
   const { data: matches, isLoading: isQueryLoading } = useUserMatches();
 
-  // Filtreleme mantığını en güvenli hale getirdik.
   const filteredMatches = useMemo(() => {
     // Store henüz yükleniyorsa veya ID yoksa veya veri gelmemişse boş dön.
     if (isStoreSyncing || !currentLeagueId || !matches) return [];
@@ -35,7 +34,6 @@ export default function MatchesScreen() {
   }, [matches, activeTab, currentLeagueId, isStoreSyncing]);
 
   // Store veritabanından güncel lig durumunu alana kadar bekle.
-  // saniyelik "hayalet maç" görüntüsünü engeller.
   if (isStoreSyncing) {
     return (
       <StyledView className="flex-1 bg-[#0b0e11] justify-center items-center">

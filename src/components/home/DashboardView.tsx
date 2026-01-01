@@ -78,7 +78,7 @@ export const DashboardView = ({ league, standings, onRefresh }: Props) => {
         </StyledText>
       </StyledView>
 
-      {/* 1. SIRADAKİ MAÇ KARTI */}
+      {/* SIRADAKİ MAÇ KARTI */}
       <StyledText className="text-white/40 mb-3 font-black text-[10px] uppercase tracking-[3px] ml-1">
         Sıradaki Mücadele
       </StyledText>
@@ -205,7 +205,7 @@ export const DashboardView = ({ league, standings, onRefresh }: Props) => {
         </StyledTouch>
       </StyledView>
 
-      {/* 3. DİNAMİK İÇERİK */}
+      {/*  DİNAMİK İÇERİK */}
       {activeTab === 'standings' ? (
         <StyledView>
           <StyledView className="flex-row justify-between items-end mb-4 px-1">
@@ -220,7 +220,7 @@ export const DashboardView = ({ league, standings, onRefresh }: Props) => {
 
                 <StyledView className="flex-1 ml-2">
                   <StyledView className="flex-row items-center">
-                    {/* 1. Takım İsmi - Ana Odak */}
+                    {/* Takım İsmi - Ana Odak */}
                     <StyledText className="text-white font-black text-[13px] uppercase tracking-tighter">
                       {item.team_name}
                     </StyledText>
@@ -255,7 +255,6 @@ export const DashboardView = ({ league, standings, onRefresh }: Props) => {
         <FixtureList fixture={fullFixture || []} isAdmin={isAdmin} />
       )}
 
-      {/* SCORE MODAL */}
       <ScoreEntryModal
         visible={scoreModalVisible}
         onClose={closeScoreModal}

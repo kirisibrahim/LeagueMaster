@@ -15,10 +15,8 @@ interface NotificationState {
   isVisible: boolean;
   buttons: ActionButton[]; // Onay butonları için dizi
   
-  // Basit Toast bildirimi (mevcut yapın)
   showNotification: (message: string, type?: NotificationType) => void;
   
-  // Detaylı Onay bildirimi (yeni yapın)
   showConfirm: (title: string, message: string, buttons: ActionButton[]) => void;
   
   hideNotification: () => void;
@@ -37,7 +35,7 @@ export const useNotificationStore = create<NotificationState>((set) => ({
       type, 
       isVisible: true, 
       title: null, 
-      buttons: [] // Toast modunda buton olmaz
+      buttons: []
     });
     
     // Sadece Toast (error, success, info) ise otomatik kapat

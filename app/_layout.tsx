@@ -70,14 +70,12 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
         <Stack screenOptions={{ headerShown: false }}>
-          {/* STRATEJİ: Her iki grup da Stack içinde tanımlı kalır. 
+          {/* Her iki grup da Stack içinde tanımlı kalır. 
             Ancak ana girişte kullanıcı durumuna göre yönlendirme yapılır.
           */}
           <Stack.Screen name="(auth)/login" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         </Stack>
-
-        {/* 2. Siyah ekranı bitiren asıl mantık: Veri hazır olduğunda zorunlu yönlendirme */}
         {userProfile ? (
           <Redirect href="/(tabs)" />
         ) : (

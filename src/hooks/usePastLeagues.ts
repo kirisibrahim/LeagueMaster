@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 export const usePastLeagues = () => {
   const userProfile = useLeagueStore((state) => state.userProfile);
 
-  // useQuery sonucunu bir değişkene atayalım
+  // useQuery sonucunu bir değişkene ata
   const queryResult = useQuery({
     queryKey: ['past-leagues', userProfile?.id],
     enabled: !!userProfile?.id,
@@ -31,10 +31,9 @@ export const usePastLeagues = () => {
     },
   });
 
-  // ProfileScreen'de beklediğimiz formatta return edelim
   return {
     data: queryResult.data,
     isLoading: queryResult.isLoading,
-    refetch: queryResult.refetch // Bu satır sayesinde ProfileScreen'deki refetchPast() çalışacak
+    refetch: queryResult.refetch
   };
 };

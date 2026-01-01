@@ -161,7 +161,6 @@ export const useLeagueActions = () => {
 
       if (rpcError) throw rpcError;
 
-      // 2. SERT TEMİZLİK geçersiz kılma tamamen sil
       // removeQueries önbellekteki veriyi saniyeler içinde uçurur
       queryClient.removeQueries({ queryKey: ['user-matches'] });
       queryClient.removeQueries({ queryKey: ['league_details', league_id] });
@@ -184,7 +183,7 @@ export const useLeagueActions = () => {
     }
   };
 
-  // 1. Ligi tamamen siler (Sadece Admin için)
+  // Ligi tamamen siler (Sadece Admin için)
   const deleteLeague = async (leagueId: string) => {
     setIsSubmitting(true);
     try {
@@ -207,7 +206,7 @@ export const useLeagueActions = () => {
     }
   };
 
-  // 2. Katılımcıyı ligden çıkarır (Oyuncu kendisi çıkar)
+  // Katılımcıyı ligden çıkarır (Oyuncu kendisi çıkar)
   const leaveLeague = async (leagueId: string, userId: string) => {
     setIsSubmitting(true);
     try {
@@ -235,8 +234,8 @@ export const useLeagueActions = () => {
     createLeague,
     joinLeague,
     finishTournament,
-    deleteLeague, // <-- Eklendi
-    leaveLeague,  // <-- Eklendi
+    deleteLeague,
+    leaveLeague,
     isSubmitting
   };
 };

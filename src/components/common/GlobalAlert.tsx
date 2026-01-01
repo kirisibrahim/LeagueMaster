@@ -17,7 +17,6 @@ export function GlobalAlert() {
     <AnimatePresence>
       {isVisible && (
         <>
-          {/* Overlay: Sadece Onay Modalı varken arkaya karartma ekler */}
           {isConfirm && (
             <MotiView
               from={{ opacity: 0 }}
@@ -52,7 +51,6 @@ export function GlobalAlert() {
             }}
           >
             {isConfirm ? (
-              /* --- CONFIRMATION MODAL --- */
               <StyledView className="bg-[#1a1d23] p-6 rounded-[32px] border border-gray-800 shadow-2xl items-center">
                 <StyledView className="w-16 h-16 bg-amber-500/10 rounded-full items-center justify-center mb-4">
                   <Ionicons name="help-circle" size={32} color="#facc15" />
@@ -89,7 +87,6 @@ export function GlobalAlert() {
                 </StyledView>
               </StyledView>
             ) : (
-              /* --- TOAST NOTIFICATION (Mevcut yapın) --- */
               <TouchableOpacity onPress={hideNotification} activeOpacity={0.9}>
                 <StyledView 
                   className={`p-4 rounded-2xl border flex-row items-center shadow-2xl ${

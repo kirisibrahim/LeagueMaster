@@ -7,7 +7,6 @@ export const useUserCareer = () => {
   const userProfile = useLeagueStore((state) => state.userProfile);
 
   // Kariyer verilerini çek
-  // Buradaki değişikliğe dikkat: { data: stats, isLoading, refetch } şeklinde aldık
   const { data: stats, isLoading, refetch } = useQuery({
     queryKey: ['user-career-stats', userProfile?.id],
     enabled: !!userProfile?.id,
@@ -23,7 +22,7 @@ export const useUserCareer = () => {
     },
   });
 
-  // İstatistikleri Sıfırlama Mutasyonu (Burası aynı kalıyor)
+  // İstatistikleri Sıfırlama Mutasyonu
   const resetStats = useMutation({
     mutationFn: async () => {
       const { error } = await supabase
@@ -47,6 +46,5 @@ export const useUserCareer = () => {
     }
   });
 
-  // return kısmına refetch'i ekliyoruz
   return { stats, isLoading, resetStats, refetch };
 };

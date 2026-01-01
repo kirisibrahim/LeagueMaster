@@ -1,10 +1,22 @@
 import { supabase } from '@/api/supabase';
+import { useLeagueStore } from '@/store/useLeagueStore';
 import { useNotificationStore } from '@/store/useNotificationStore';
 import { useRouter } from 'expo-router';
 import { MotiView } from 'moti';
 import { styled } from 'nativewind';
 import React, { useEffect, useState } from 'react';
-import { Image, Keyboard, Platform, ScrollView, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Image,
+  Keyboard,
+  Platform,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View
+} from 'react-native';
 
 const StyledView = styled(View);
 const StyledText = styled(Text);
@@ -18,7 +30,7 @@ export default function LoginScreen() {
   const showNotification = useNotificationStore((state) => state.showNotification);
 
   useEffect(() => {
-    // Klavye hareketlerini dinliyoruz
+    // klavye dinleyicileri
     const showSubscription = Keyboard.addListener(
       Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
       (e) => setKeyboardHeight(e.endCoordinates.height)
@@ -35,18 +47,32 @@ export default function LoginScreen() {
   }, []);
 
   async function signInWithEmail() {
-    setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-
-    if (error) {
-      // 3. Native Alert yerine Global Notification'ı tetikliyoruz
-      showNotification("E-posta veya şifre hatalı. Arenaya giriş yapılamadı.", "error");
-    } else {
-      // Başarılı girişte de yeşil bildirim gösterebilirsin
-      showNotification("Hoş geldin efsane! Giriş başarılı.", "success");
-      router.replace('/(tabs)');
+    if (!email.trim() || !password.trim()) {
+      showNotification("E-posta ve şifre girmelisin.", "error");
+      return;
     }
-    setLoading(false);
+
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password
+      });
+
+      if (error) {
+        showNotification("E-posta veya şifre hatalı.", "error");
+      } else if (data.user) {
+        // useLeagueStore içindeki fetchProfile fonksiyonunu çağırıyoruz
+        await useLeagueStore.getState().fetchProfile(data.user.id);
+
+        showNotification("Hoş geldin efsane! Giriş başarılı.", "success");
+        router.replace('/(tabs)');
+      }
+    } catch (err) {
+      showNotification("Bağlantı hatası oluştu.", "error");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -55,15 +81,12 @@ export default function LoginScreen() {
         <ScrollView
           contentContainerStyle={{
             flexGrow: 1,
-            // Klavye açıldığında alt kısma klavye kadar boşluk ekliyoruz
-            // Bu sayede içerik yukarı "kaymak zorunda" kalıyor.
             paddingBottom: keyboardHeight
           }}
           bounces={false}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* Tasarımın aynı kalması için justify-center devam ediyor */}
           <StyledView className="flex-1 justify-center p-8">
 
             {/* LOGO BÖLÜMÜ */}
@@ -73,13 +96,13 @@ export default function LoginScreen() {
               transition={{ type: 'spring', duration: 1000 }}
               className="items-center mb-12"
             >
-              <StyledView className="w-56 h-56 items-center justify-center overflow-hidden">
+              <StyledView className="w-56 h-56 items-center justify-center">
                 <Image
                   source={require('../../assets/images/logo_main.png')}
                   style={{ width: '100%', height: '100%', resizeMode: 'contain' }}
                 />
               </StyledView>
-              <StyledText className="text-gray-500 font-bold uppercase tracking-[4px] text-[10px] mt-2">
+              <StyledText className="text-gray-500 font-bold uppercase tracking-[4px] text-[10px] mt-2 text-center">
                 Efsanelerin Arenası
               </StyledText>
             </MotiView>
@@ -89,7 +112,6 @@ export default function LoginScreen() {
               from={{ opacity: 0, translateX: -20 }}
               animate={{ opacity: 1, translateX: 0 }}
               transition={{ delay: 300, type: 'timing' }}
-              className="space-y-4"
             >
               <StyledView className="bg-[#1a1d23] rounded-2xl border border-white/5 px-4 py-1 mb-4">
                 <StyledText className="text-[#00ff85] text-[10px] font-black uppercase mt-2 ml-1">E-Posta</StyledText>
@@ -100,6 +122,7 @@ export default function LoginScreen() {
                   onChangeText={setEmail}
                   value={email}
                   autoCapitalize='none'
+                  keyboardType="email-address"
                 />
               </StyledView>
 
@@ -127,21 +150,29 @@ export default function LoginScreen() {
                 activeOpacity={0.8}
                 onPress={signInWithEmail}
                 disabled={loading}
-                className={`bg-[#00ff85] py-5 rounded-2xl mt-10 shadow-lg shadow-[#00ff85]/20 ${loading ? 'opacity-50' : ''}`}
+                className={`bg-[#00ff85] py-5 rounded-2xl mt-10 shadow-lg shadow-[#00ff85]/20 flex-row justify-center items-center ${loading ? 'opacity-50' : ''}`}
               >
+                {loading && <ActivityIndicator color="#0b0e11" style={{ marginRight: 10 }} />}
                 <StyledText className="text-[#0b0e11] text-center font-black uppercase tracking-[2px]">
                   {loading ? 'Saha Hazırlanıyor...' : 'Arenaya Gir'}
                 </StyledText>
               </TouchableOpacity>
 
-              <TouchableOpacity
-                onPress={() => router.push('/(auth)/register')}
-                className="mt-8"
-              >
-                <StyledText className="text-gray-500 text-center font-bold">
-                  Yeni bir efsane misin? <StyledText className="text-[#00ff85]">Kayıt Ol</StyledText>
+              <StyledView className="flex-row items-center justify-center mt-10 mb-6">
+                <StyledText className="text-gray-500 font-bold">
+                  Henüz bir hesabın yok mu?
                 </StyledText>
-              </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => router.push('/(auth)/register')}
+                  activeOpacity={0.7}
+                  className="ml-3 bg-[#00ff85]/10 border border-[#00ff85]/30 px-4 py-2 rounded-xl"
+                >
+                  <StyledText className="text-[#00ff85] font-black uppercase text-xs tracking-widest">
+                    Kayıt Ol
+                  </StyledText>
+                </TouchableOpacity>
+              </StyledView>
             </MotiView>
 
           </StyledView>

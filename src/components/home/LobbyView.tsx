@@ -52,7 +52,7 @@ export default function LobbyView({ league, isAdmin, onRefresh }: Props) {
       )
       .subscribe();
 
-    // Temizlik (Cleanup): Ekrandan çıkınca aboneliği iptal et (Senior dokunuşu)
+    // Temizlik Ekrandan çıkınca aboneliği iptal et
     return () => {
       supabase.removeChannel(lobbyChannel);
     };
@@ -78,7 +78,7 @@ export default function LobbyView({ league, isAdmin, onRefresh }: Props) {
 
   const handleExitAction = () => {
     if (isAdmin) {
-      // ADMIN İÇİN: Lobi İptali (Kritik İşlem)
+      // ADMIN İÇİN: Lobi İptali
       showConfirm(
         'DİKKAT: Lobi Siliniyor!',
         'Bu turnuvayı iptal etmek üzeresin. Tüm katılımcılar lobiden atılacak ve bu işlem geri alınamaz. Emin misin?',
@@ -223,7 +223,7 @@ export default function LobbyView({ league, isAdmin, onRefresh }: Props) {
           </StyledView>
         </StyledView>
 
-        {/* 3. KATILIMCI LİSTESİ - Flex-1 ile Butonlara Kadar Alanı Kaplar */}
+        {/* KATILIMCI LİSTESİ */}
         <StyledView className="flex-1 px-4">
           <FlatList
             data={participants}
@@ -275,7 +275,7 @@ export default function LobbyView({ league, isAdmin, onRefresh }: Props) {
                       </StyledText>
                     </StyledView>
 
-                    {/* Kick (Atma) Butonu - Sadece Admin Başkası İçin Görür */}
+                    {/* Kick Butonu - Sadece Admin Başkası İçin Görür */}
                     {canKick && (
                       <TouchableOpacity
                         onPress={() => {
@@ -303,7 +303,7 @@ export default function LobbyView({ league, isAdmin, onRefresh }: Props) {
             }}
           />
         </StyledView>
-        {/* 4. AKSİYON ALANI - Tab Bar'ın Hemen Üstünde */}
+        {/* AKSİYON ALANI */}
         <StyledView className="absolute bottom-0 left-6 right-6 bg-[#0b0e11]/95 pt-2">
           {isAdmin ? (
             <StyledView>
@@ -326,7 +326,7 @@ export default function LobbyView({ league, isAdmin, onRefresh }: Props) {
                 )}
               </TouchableOpacity>
 
-              {/* KRİTİK AKSİYON: İPTAL ET (Belirginleştirildi) */}
+              {/*İPTAL ET */}
               <TouchableOpacity
                 onPress={handleExitAction}
                 className="h-14 rounded-2xl items-center justify-center border-2 border-red-500/50 bg-red-500/10 active:bg-red-500/20"

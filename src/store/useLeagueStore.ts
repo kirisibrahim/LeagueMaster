@@ -2,13 +2,19 @@ import { supabase } from '@/api/supabase';
 import { LeagueStatus, Profile } from '@/types/database';
 import { create } from 'zustand';
 
+// profile tipini logo_url içerecek şekilde genişletiyoruz
+export interface ProfileWithLogo extends Profile {
+  logo_url?: string;
+}
+
 interface LeagueState {
   currentLeagueId: string | null | undefined;
   leagueStatus: LeagueStatus | null;
-  userProfile: Profile | null;
+  userProfile: ProfileWithLogo | null;
   isLoading: boolean;
   setCurrentLeagueId: (id: string | null) => void;
-  setUserProfile: (profile: Profile | null) => void;
+  setUserProfile: (profile: ProfileWithLogo | null) => void;
+  fetchProfile: (userId: string) => Promise<void>; // Profil ve logoyu çeken fonksiyon
   syncActiveLeague: (userId: string) => Promise<void>;
   logout: () => void;
 }
@@ -21,12 +27,53 @@ export const useLeagueStore = create<LeagueState>((set) => ({
 
   setCurrentLeagueId: (id) => set({ currentLeagueId: id }),
 
-  setUserProfile: (profile) => set({ userProfile: profile }),
+  setUserProfile: (profile) => set((state) => ({
+    userProfile: profile
+      ? {
+        ...profile,
+        // Eğer yeni gelen veride logo yoksa, hafızadaki (state) mevcut logoyu koru
+        logo_url: (profile as any).logo_url || state.userProfile?.logo_url
+      }
+      : null
+  })),
 
+  // Profili ve Logoyu İlişkisel Olarak Çekme
+  fetchProfile: async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select(`
+        *,
+        official_teams:favorite_team_id (
+          logo_url
+        )
+      `)
+        .eq('id', userId)
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        const logo = (data as any).official_teams?.logo_url;
+
+        const formattedProfile: ProfileWithLogo = {
+          ...data,
+          logo_url: logo // Logoyu buraya zorla yazıyoruz
+        };
+
+        set({ userProfile: formattedProfile });
+
+        // console.log("✅ Final Profile Object Set:", JSON.stringify(formattedProfile, null, 2));
+      }
+    } catch (error) {
+      console.error("Fetch Profile Error:", error);
+    }
+  },
+
+  // Aktif Lig Senkronizasyonu (Mevcut mantığın korundu)
   syncActiveLeague: async (userId: string) => {
     set({ isLoading: true, currentLeagueId: undefined });
     try {
-      // kullanıcın nkatıldığı tğm linklerin idleri
       const { data: participations, error: pError } = await supabase
         .from('league_participants')
         .select('league_id')
@@ -41,18 +88,15 @@ export const useLeagueStore = create<LeagueState>((set) => ({
 
       const leagueIds = participations.map(p => p.league_id);
 
-      // bu idlerden sadece active ve lobby olanı getir
-      // .in('status', [...]) kullanarak completed olanları kesin dışarıda bırakıyoruz
       const { data: activeLeagues, error: lError } = await supabase
         .from('leagues')
         .select('id, status')
         .in('id', leagueIds)
-        .in('status', ['lobby', 'active']) // completed yok
+        .in('status', ['lobby', 'active'])
         .maybeSingle();
 
       if (lError) throw lError;
 
-      // aktif lig bulunduysa set et bulunamadıysa tertemiz yap
       if (activeLeagues) {
         set({
           currentLeagueId: activeLeagues.id,

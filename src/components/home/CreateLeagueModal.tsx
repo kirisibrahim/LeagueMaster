@@ -54,8 +54,6 @@ export default function CreateLeagueModal({ visible, onClose }: Props) {
       onRequestClose={onClose}
     >
       <StyledView className="flex-1 bg-[#0b0e11]">
-
-        {/* Dekoratif Arka Plan Işığı (Süslü Dokunuş) */}
         <StyledView
           className="absolute -top-10 -left-10 w-40 h-40 bg-[#00ff85]/10 rounded-full"
         />
@@ -64,7 +62,7 @@ export default function CreateLeagueModal({ visible, onClose }: Props) {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           className="flex-1"
         >
-          {/* HEADER - Neon Etkili */}
+          {/* HEADER */}
           <StyledView className="pt-8 pb-8 px-8 flex-row justify-between items-center border-b border-white/5">
             <StyledView>
               <StyledView className="flex-row items-center mb-1">
@@ -90,7 +88,7 @@ export default function CreateLeagueModal({ visible, onClose }: Props) {
             className="flex-1 px-4"
             contentContainerStyle={{ paddingTop: 24, paddingBottom: 24 }}
           >
-            {/* GRUP 1: KİMLİK (İkonlu & Glowlu) */}
+            {/* kimlik*/}
             <StyledView className="mb-4 space-y-4">
               <StyledView>
                 <StyledView className="flex-row items-center mb-2 ml-1">
@@ -131,7 +129,7 @@ export default function CreateLeagueModal({ visible, onClose }: Props) {
               </StyledView>
             </StyledView>
 
-            {/* GRUP 2: OYUN KURALLARI (İnteraktif Kart) */}
+            {/* oyun kuralları */}
             <StyledView className="mb-4 p-4 bg-[#16191d] rounded-xl border border-[#00ff85]/30 relative overflow-hidden">
               {/* Arka Plan Süsü */}
               <StyledView className="absolute -right-10 -top-10">
@@ -196,7 +194,7 @@ export default function CreateLeagueModal({ visible, onClose }: Props) {
               </StyledView>
             </StyledView>
 
-            {/* ACTION BUTTON - Ultra Glow */}
+            {/* action button */}
             <StyledView className="shadow-[#00ff85]/40 shadow-2xl">
               <TouchableOpacity
                 onPress={handleCreate}

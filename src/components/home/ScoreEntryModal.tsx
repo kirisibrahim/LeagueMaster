@@ -17,7 +17,7 @@ interface Props {
 export const ScoreEntryModal = ({ visible, onClose, nextMatch, onSave }: Props) => {
   const [homeScore, setHomeScore] = useState('0');
   const [awayScore, setAwayScore] = useState('0');
-  // Maçın adamı state'i
+  // Maçın adamı state
   const [selectedMotm, setSelectedMotm] = useState<string | null>(null);
 
   const handleSave = () => {

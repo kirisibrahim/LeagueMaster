@@ -6,10 +6,11 @@ import { useLeagueStore } from '@/store/useLeagueStore';
 import { useFocusEffect } from '@react-navigation/native';
 import { styled } from 'nativewind';
 import React, { useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 const StyledView = styled(View);
 const StyledText = styled(Text);
+const StyledImage = styled(Image);
 
 export default function ProfileScreen() {
   const { handleSignOut } = useAuthActions();
@@ -19,12 +20,12 @@ export default function ProfileScreen() {
   const [selectedLeague, setSelectedLeague] = useState<{ id: string, name: string } | null>(null);
 
   // FocusEffect ile otomatik tazeleme
-useFocusEffect(
-  React.useCallback(() => {
-    if (refetchStats) refetchStats();
-    if (refetchPast) refetchPast();
-  }, [])
-);
+  useFocusEffect(
+    React.useCallback(() => {
+      if (refetchStats) refetchStats();
+      if (refetchPast) refetchPast();
+    }, [])
+  );
 
   // Rating Algoritması
   const ovr = useMemo(() => {
@@ -56,31 +57,56 @@ useFocusEffect(
     <ScrollView contentContainerStyle={{ flexGrow: 1 }} className="bg-[#0b0e11]">
       <StyledView className="flex-1 p-6 items-center justify-top mt-12">
 
-        {/* profil kartı */}
-        <StyledView className="w-72 h-96 bg-[#1a1d23] rounded-[40px] border-2 border-[#00ff85] p-8 shadow-2xl shadow-[#00ff85]/20">
+        {/* PROFIL KARTI */}
+        <StyledView className="w-72 h-[420px] bg-[#1a1d23] rounded-[40px] border-2 border-[#00ff85] p-8 shadow-2xl shadow-[#00ff85]/30">
 
+          {/* ÜST BÖLÜM: Rating ve Takım Logosu */}
           <StyledView className="flex-row justify-between items-start">
             <StyledView>
-              <StyledText className="text-[#00ff85] text-5xl font-black italic tracking-tighter">{ovr}</StyledText>
-              <StyledText className="text-gray-500 font-black text-xs tracking-widest">
+              <StyledText className="text-[#00ff85] text-6xl font-black italic tracking-tighter leading-none">
+                {ovr}
+              </StyledText>
+              <StyledText className="text-gray-500 font-black text-[10px] tracking-[2px] mt-1">
                 {ovr >= 90 ? 'LEGEND' : ovr >= 80 ? 'WORLD CLASS' : 'AMATEUR'}
               </StyledText>
             </StyledView>
-            <StyledView className="w-12 h-12 bg-[#2a2e35] rounded-2xl items-center justify-center border border-white/5">
-              <StyledText className="text-white text-[10px] font-black text-center uppercase">
-                {userProfile?.favorite_team?.substring(0, 3) || 'UT'}
-              </StyledText>
+
+            {/* Profil sayfasındaki logo alanı */}
+            <StyledView className="w-16 h-16 bg-[#2a2e35] rounded-2xl items-center justify-center border border-white/10 shadow-inner overflow-hidden">
+              {userProfile?.logo_url ? (
+                <StyledImage
+                  key={userProfile.logo_url}
+                  source={{ uri: userProfile.logo_url }}
+                  // BURASI ÖNEMLİ: Tailwind sınıfına ek olarak style prop'u ile garantiye alıyoruz
+                  style={{ width: 48, height: 48 }}
+                  className="w-12 h-12"
+                  resizeMode="contain"
+                />
+              ) : (
+                <StyledView className="items-center justify-center">
+                  <StyledText className="text-white text-[10px] font-black uppercase tracking-tighter">
+                    {userProfile?.favorite_team?.substring(0, 3) || 'UT'}
+                  </StyledText>
+                </StyledView>
+              )}
             </StyledView>
           </StyledView>
 
-          <StyledView className="mt-12 items-center">
+          {/* ORTA BÖLÜM: Kullanıcı Adı */}
+          <StyledView className="mt-14 items-center">
+            <StyledView className="bg-[#00ff85]/10 px-4 py-1 rounded-full mb-2">
+              <StyledText className="text-[#00ff85] text-[10px] font-black uppercase tracking-widest">
+                Active Player
+              </StyledText>
+            </StyledView>
             <StyledText className="text-white text-3xl font-black uppercase italic tracking-tighter" numberOfLines={1}>
               {userProfile?.username}
             </StyledText>
-            <StyledView className="h-1 w-12 bg-[#00ff85] mt-3 rounded-full" />
+            <StyledView className="h-1 w-16 bg-[#00ff85] mt-4 rounded-full shadow-lg shadow-[#00ff85]" />
           </StyledView>
 
-          <StyledView className="mt-12 flex-row justify-between border-t border-white/5 pt-8">
+          {/* ALT BÖLÜM: İstatistikler */}
+          <StyledView className="mt-auto flex-row justify-between border-t border-white/10 pt-8">
             <StatItem label="MAÇ" value={stats?.total_matches || 0} />
             <StatItem label="GOL" value={stats?.goals_for || 0} />
             <StatItem

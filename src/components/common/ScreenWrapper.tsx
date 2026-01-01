@@ -8,7 +8,7 @@ const StyledView = styled(View);
 interface Props {
   children: React.ReactNode;
   bg?: string;
-  withPadding?: boolean; // Sayfa kenarlarında varsayılan padding olsun mu?
+  withPadding?: boolean;
 }
 
 export default function ScreenWrapper({ children, bg = '#0b0e11', withPadding = false }: Props) {

@@ -11,11 +11,10 @@ export function useLobby(leagueId: string | null) {
       if (!leagueId) return null;
 
       // performan için iki sorgu aynı anda
-      // useLobby.ts içinde:
       const [leagueRes, participantsRes] = await Promise.all([
         supabase.from('leagues').select('*').eq('id', leagueId).single(),
         supabase.from('league_participants')
-          .select('*, profiles(username)') // <--- profiles(username) eklendi
+          .select('*, profiles(username)')
           .eq('league_id', leagueId)
       ]);
 
@@ -34,8 +33,6 @@ export function useLobby(leagueId: string | null) {
   useEffect(() => {
     if (!leagueId) return;
 
-    // console.log("Realtime dinleyici başlatıldı, Lig ID:", leagueId);
-
     const channel = supabase
       .channel(`lobby-realtime-${leagueId}`)
       .on(
@@ -47,7 +44,6 @@ export function useLobby(leagueId: string | null) {
           filter: `league_id=eq.${leagueId}`
         },
         (payload) => {
-          // console.log("Katılımcı değişikliği sinyali geldi:", payload);
           queryClient.invalidateQueries({ queryKey: ['lobby', leagueId] });
           queryClient.invalidateQueries({ queryKey: ['standings', leagueId] });
         }
@@ -61,19 +57,14 @@ export function useLobby(leagueId: string | null) {
           filter: `id=eq.${leagueId}`
         },
         (payload) => {
-          // console.log("!!! LİG DURUMU GÜNCELLENDİ (LOBİ -> AKTİF) !!!", payload);
-
-          // Kendi verisini (lobby query) güncelle!
-          // DashboardView daki lobbyData buradan besleniyor.
           queryClient.setQueryData(['lobby', leagueId], (oldData: any) => {
             if (!oldData) return oldData;
             return {
               ...oldData,
-              league: payload.new // Yeni lig verisini (status: active) buraya enjekte et
+              league: payload.new
             };
           });
 
-          // diğer anahtarı da güncelle (DashboardView'daki 'league' değişkeni için)
           queryClient.setQueryData(['league_details', leagueId], payload.new);
 
           // sistemi sars
@@ -87,7 +78,6 @@ export function useLobby(leagueId: string | null) {
       });
 
     return () => {
-      // console.log("Realtime kanalı kapatılıyor...");
       supabase.removeChannel(channel);
     };
   }, [leagueId, queryClient]);

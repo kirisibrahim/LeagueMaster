@@ -1,4 +1,3 @@
-// (tabs)/index.tsx
 import { FullScreenLoading } from '@/components/common/FullScreenLoading';
 import { DashboardView } from '@/components/home/DashboardView';
 import { EntryView } from '@/components/home/EntryView';
@@ -8,14 +7,12 @@ import { useLeagueStore } from '@/store/useLeagueStore';
 import React from 'react';
 
 export default function HomeScreen() {
-  // 1. ADIM: TÜM HOOK'LAR EN ÜSTTE OLMALI (React Kuralı)
   const { currentLeagueId, userProfile, isLoading: storeLoading } = useLeagueStore();
   const { isChecking } = useInitialCheck();
 
   // queryId'yi burada tanımlıyoruz
   const queryId = currentLeagueId ?? null;
 
-  // React Query hook'ları her render'da aynı sırada çalışmalı!
   const {
     data: league,
     status: leagueStatus,
@@ -34,19 +31,15 @@ export default function HomeScreen() {
     await Promise.all([refetchLeague(), refetchStandings()]);
   };
 
-  // -----------------------------------------------------------------
-  // 2. ADIM: KARAR MANTIĞI (Tüm return'ler hook'lardan sonra gelmeli)
-  // -----------------------------------------------------------------
+  // Sistem Meşguliyet Kontrolü
 
-  // A. Sistem Meşguliyet Kontrolü
-  // currentLeagueId undefined ise henüz veritabanından cevap gelmemiştir.
   const isSystemBusy = storeLoading || currentLeagueId === undefined;
 
   if (isSystemBusy) {
     return <FullScreenLoading message="Arena Bilgileri Kontrol Ediliyor..." />;
   }
 
-  // B. Veri Çekme Kontrolü (ID var ama internetten veri bekleniyor)
+  // Veri Çekme Kontrolü (ID var ama internetten veri bekleniyor)
   const isDataLoading =
     currentLeagueId !== null && (
       leagueStatus === 'pending' ||
@@ -59,7 +52,7 @@ export default function HomeScreen() {
     return <FullScreenLoading message="Lig Verileri Alınıyor..." />;
   }
 
-  // C. Giriş Ekranı (Lig kesinlikle yoksa)
+  // Giriş Ekranı (Lig kesinlikle yoksa)
   if (currentLeagueId === null) {
     return <EntryView />;
   }
@@ -68,7 +61,7 @@ export default function HomeScreen() {
     return <FullScreenLoading message="Lig Detayları Alınıyor..." />;
   }
 
-  // D. Başarı (Dashboard)
+  // Başarı (Dashboard)
   return (
     <DashboardView
       league={league}
