@@ -21,7 +21,6 @@ export const PastLeagueModal = ({ visible, onClose, leagueId, leagueName }: Prop
       <StyledView className="flex-1 bg-black/90 justify-end">
         <StyledView className="bg-[#0b0e11] h-[80%] rounded-t-[40px] border-t border-[#00ff85]/20 p-6">
           
-          {/* Header */}
           <StyledView className="flex-row justify-between items-center mb-8">
             <StyledView>
               <StyledText className="text-gray-500 font-black text-[10px] uppercase tracking-widest">ARŞİV KAYDI</StyledText>

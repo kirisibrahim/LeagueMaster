@@ -5,18 +5,7 @@ import { useRouter } from 'expo-router';
 import { MotiView } from 'moti';
 import { styled } from 'nativewind';
 import React, { useEffect, useState } from 'react';
-import {
-  ActivityIndicator,
-  Image,
-  Keyboard,
-  Platform,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  View
-} from 'react-native';
+import { ActivityIndicator, Image, Keyboard, Platform, ScrollView, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 
 const StyledView = styled(View);
 const StyledText = styled(Text);
@@ -88,8 +77,6 @@ export default function LoginScreen() {
           showsVerticalScrollIndicator={false}
         >
           <StyledView className="flex-1 justify-center p-8">
-
-            {/* LOGO BÖLÜMÜ */}
             <MotiView
               from={{ opacity: 0, scale: 0.5, translateY: -20 }}
               animate={{ opacity: 1, scale: 1, translateY: 0 }}
@@ -106,8 +93,6 @@ export default function LoginScreen() {
                 Efsanelerin Arenası
               </StyledText>
             </MotiView>
-
-            {/* INPUT ALANLARI */}
             <MotiView
               from={{ opacity: 0, translateX: -20 }}
               animate={{ opacity: 1, translateX: 0 }}
@@ -125,7 +110,6 @@ export default function LoginScreen() {
                   keyboardType="email-address"
                 />
               </StyledView>
-
               <StyledView className="bg-[#1a1d23] rounded-2xl border border-white/5 px-4 py-1">
                 <StyledText className="text-[#00ff85] text-[10px] font-black uppercase mt-2 ml-1">Şifre</StyledText>
                 <TextInput
@@ -139,8 +123,6 @@ export default function LoginScreen() {
                 />
               </StyledView>
             </MotiView>
-
-            {/* BUTONLAR */}
             <MotiView
               from={{ opacity: 0, translateY: 20 }}
               animate={{ opacity: 1, translateY: 0 }}

@@ -1,4 +1,3 @@
-// api/teams.ts
 import { supabase } from './supabase';
 
 export const searchOfficialTeams = async (searchTerm: string) => {
@@ -7,8 +6,8 @@ export const searchOfficialTeams = async (searchTerm: string) => {
   const { data, error } = await supabase
     .from('official_teams')
     .select('id, name, logo_url')
-    .ilike('name', `%${searchTerm}%`) // Büyük/küçük harf duyarsız arama
-    .limit(15); // UI yormamak için limitliyoruz
+    .ilike('name', `%${searchTerm}%`) // büyük küçük harf duyarsız
+    .limit(15); // UI yorulmasın limit
 
   if (error) {
     console.error('Takım arama hatası:', error);

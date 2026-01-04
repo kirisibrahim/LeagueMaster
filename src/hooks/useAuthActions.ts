@@ -15,7 +15,7 @@ export const useAuthActions = () => {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
 
-      // zustand store sıfırla / bellek temizle
+      // zustand store sıfırla bellek temizle
       logoutStore();
 
       // tanstack cache temizle

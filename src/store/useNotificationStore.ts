@@ -13,7 +13,7 @@ interface NotificationState {
   message: string | null;
   type: NotificationType;
   isVisible: boolean;
-  buttons: ActionButton[]; // Onay butonları için dizi
+  buttons: ActionButton[]; // onay butonları dizisi
   
   showNotification: (message: string, type?: NotificationType) => void;
   
@@ -38,7 +38,6 @@ export const useNotificationStore = create<NotificationState>((set) => ({
       buttons: []
     });
     
-    // Sadece Toast (error, success, info) ise otomatik kapat
     if (type !== 'confirm') {
       setTimeout(() => {
         set((state) => (state.message === message ? { isVisible: false } : state));
@@ -52,7 +51,7 @@ export const useNotificationStore = create<NotificationState>((set) => ({
       message,
       type: 'confirm',
       isVisible: true,
-      buttons, // Dışarıdan gelen butonlar
+      buttons, // dışardan gelen butonlar
     });
   },
 

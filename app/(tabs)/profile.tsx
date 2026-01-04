@@ -27,11 +27,11 @@ export default function ProfileScreen() {
     }, [])
   );
 
-  // Rating Algoritması
+  // rating algoritması
   const ovr = useMemo(() => {
     if (!stats || stats.total_matches === 0) return 60;
     const winRate = (stats.total_wins / stats.total_matches) * 100;
-    // Galibiyet oranı ağırlıklı bir puanlama (Max 99)
+    // galibiyet oranına göre puanlama
     const baseRating = 60 + (winRate * 0.39);
     return Math.min(Math.round(baseRating), 99);
   }, [stats]);
@@ -56,11 +56,7 @@ export default function ProfileScreen() {
   return (
     <ScrollView contentContainerStyle={{ flexGrow: 1 }} className="bg-[#0b0e11]">
       <StyledView className="flex-1 p-6 items-center justify-top mt-12">
-
-        {/* PROFIL KARTI */}
         <StyledView className="w-72 h-[420px] bg-[#1a1d23] rounded-[40px] border-2 border-[#00ff85] p-8 shadow-2xl shadow-[#00ff85]/30">
-
-          {/* ÜST BÖLÜM: Rating ve Takım Logosu */}
           <StyledView className="flex-row justify-between items-start">
             <StyledView>
               <StyledText className="text-[#00ff85] text-6xl font-black italic tracking-tighter leading-none">
@@ -70,14 +66,11 @@ export default function ProfileScreen() {
                 {ovr >= 90 ? 'LEGEND' : ovr >= 80 ? 'WORLD CLASS' : 'AMATEUR'}
               </StyledText>
             </StyledView>
-
-            {/* Profil sayfasındaki logo alanı */}
             <StyledView className="w-16 h-16 bg-[#2a2e35] rounded-2xl items-center justify-center border border-white/10 shadow-inner overflow-hidden">
               {userProfile?.logo_url ? (
                 <StyledImage
                   key={userProfile.logo_url}
                   source={{ uri: userProfile.logo_url }}
-                  // BURASI ÖNEMLİ: Tailwind sınıfına ek olarak style prop'u ile garantiye alıyoruz
                   style={{ width: 48, height: 48 }}
                   className="w-12 h-12"
                   resizeMode="contain"
@@ -92,7 +85,6 @@ export default function ProfileScreen() {
             </StyledView>
           </StyledView>
 
-          {/* ORTA BÖLÜM: Kullanıcı Adı */}
           <StyledView className="mt-14 items-center">
             <StyledView className="bg-[#00ff85]/10 px-4 py-1 rounded-full mb-2">
               <StyledText className="text-[#00ff85] text-[10px] font-black uppercase tracking-widest">
@@ -105,7 +97,6 @@ export default function ProfileScreen() {
             <StyledView className="h-1 w-16 bg-[#00ff85] mt-4 rounded-full shadow-lg shadow-[#00ff85]" />
           </StyledView>
 
-          {/* ALT BÖLÜM: İstatistikler */}
           <StyledView className="mt-auto flex-row justify-between border-t border-white/10 pt-8">
             <StatItem label="MAÇ" value={stats?.total_matches || 0} />
             <StatItem label="GOL" value={stats?.goals_for || 0} />
@@ -117,7 +108,6 @@ export default function ProfileScreen() {
           </StyledView>
         </StyledView>
 
-        {/* profil aksiyonları */}
         <StyledView className="w-full mt-12 space-y-4">
           <TouchableOpacity
             onPress={handleReset}
@@ -138,7 +128,6 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </StyledView>
 
-        {/* geçmiş ligler ve turnuvalar */}
         <StyledView className="w-full mt-10">
           <StyledText className="text-white/30 font-black text-[10px] uppercase tracking-[3px] ml-1 mb-4">
             Müze & Arşiv
@@ -192,8 +181,7 @@ export default function ProfileScreen() {
     </ScrollView>
   );
 }
-
-// Atomik Stat Bileşeni
+// stat bileşeni
 const StatItem = ({ label, value, isHighlight }: { label: string, value: string | number, isHighlight?: boolean }) => (
   <StyledView className="items-center">
     <StyledText className={`text-xl font-black italic ${isHighlight ? 'text-[#00ff85]' : 'text-white'}`}>

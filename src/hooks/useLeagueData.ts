@@ -9,18 +9,35 @@ export const useStandings = (leagueId: string | null) => {
     queryKey: ['standings', leagueId],
     queryFn: async () => {
       if (!leagueId) return [];
-      const { data, error } = await supabase
-        .from('league_participants')
-        .select('*, profiles(username)')
-        .eq('league_id', leagueId)
-        .order('points', { ascending: false })
-        .order('goals_for', { ascending: false });
 
-      if (error) throw error;
-      return data as Participant[];
+      // canlı puan durumu verilerini rpc ile al
+      const { data: calculatedData, error: rpcError } = await supabase
+        .rpc('get_live_standings', { l_id: leagueId });
+
+      if (rpcError) throw rpcError;
+
+      // logo kullanıcı adı gibi statik veriler
+      const { data: staticData, error: pError } = await supabase
+        .from('league_participants')
+        .select('user_id, motm_count, profiles(username), official_teams:team_id(logo_url)')
+        .eq('league_id', leagueId);
+
+      if (pError) throw pError;
+
+      // verileri harmanla
+      return calculatedData.map((calc: any) => {
+        const extra = staticData?.find((s) => s.user_id === calc.user_id);
+        return {
+          ...calc,
+          motm_count: extra?.motm_count || 0,
+          profiles: extra?.profiles,
+          official_teams: extra?.official_teams,
+          goal_difference: (calc.goals_for || 0) - (calc.goals_against || 0)
+        };
+      }) as Participant[];
     },
     enabled: !!leagueId,
-    staleTime: 1000 * 60 * 5,
+    staleTime: 0,
   });
 };
 
@@ -65,7 +82,7 @@ export const useNextMatch = (leagueId: string | null) => {
       // katılımcı bilgilerini çek
       const { data: participants, error: pError } = await supabase
         .from('league_participants')
-        .select('user_id, team_name, profiles(username)')
+        .select('user_id, team_name, profiles(username), official_teams:team_id(logo_url)')
         .eq('league_id', leagueId)
         .in('user_id', [match.home_user_id, match.away_user_id]);
 
@@ -98,7 +115,7 @@ export const useFullFixture = (leagueId: string | null) => {
 
       const { data: participants } = await supabase
         .from('league_participants')
-        .select('user_id, team_name')
+        .select('user_id, team_name, official_teams:team_id(logo_url)')
         .eq('league_id', leagueId);
 
       return matches.map(match => ({
@@ -111,7 +128,46 @@ export const useFullFixture = (leagueId: string | null) => {
   });
 };
 
-// skor güncelleme mutasyon motm destekki
+// maç başlatama mutasyonu Status =  pending -> live
+export const useStartMatch = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (matchId: string) => {
+      const { error } = await supabase
+        .from('matches')
+        .update({ status: 'live' })
+        .eq('id', matchId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['nextMatch'] });
+      queryClient.invalidateQueries({ queryKey: ['fullFixture'] });
+    },
+  });
+};
+
+// canlı skor güncelleme maçı bitirmeden tabloyu günceller
+export const useUpdateLiveScore = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ matchId, homeScore, awayScore }: { matchId: string, homeScore: number, awayScore: number }) => {
+      const { error } = await supabase
+        .from('matches')
+        .update({
+          home_score: homeScore,
+          away_score: awayScore,
+        })
+        .eq('id', matchId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['standings'] });
+      queryClient.invalidateQueries({ queryKey: ['nextMatch'] });
+    },
+  });
+};
+
+// skor güncelleme mutasyon
 export const useUpdateMatchScore = () => {
   const queryClient = useQueryClient();
 
@@ -120,29 +176,37 @@ export const useUpdateMatchScore = () => {
       matchId,
       homeScore,
       awayScore,
-      motmId
+      motmId,
+      status = 'live'
     }: {
       matchId: string;
       homeScore: number;
       awayScore: number;
-      motmId: string | null
+      motmId: string | null;
+      status?: 'live' | 'completed';
     }) => {
+      // dinamik güncelleme 
+      const updateData: any = {
+        home_score: homeScore,
+        away_score: awayScore,
+        status: status,
+        is_completed: status === 'completed',
+      };
+
+      // maç bittiyse ek alanları ekle
+      if (status === 'completed') {
+        updateData.motm_user_id = motmId;
+        updateData.played_at = new Date().toISOString();
+      }
+
       const { error } = await supabase
         .from('matches')
-        .update({
-          home_score: homeScore,
-          away_score: awayScore,
-          is_completed: true,
-          status: 'completed',
-          motm_user_id: motmId,
-          played_at: new Date().toISOString() // raporlama için maçın tamamlanma zamanı
-        })
+        .update(updateData)
         .eq('id', matchId);
 
       if (error) throw error;
     },
     onSuccess: async () => {
-      // ilgili verileri paralel olarak yenile
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['nextMatch'] }),
         queryClient.invalidateQueries({ queryKey: ['standings'] }),
@@ -166,7 +230,8 @@ export const useUndoMatch = () => {
           home_score: 0,
           away_score: 0,
           is_completed: false,
-          status: 'pending'
+          status: 'pending',
+          motm_user_id: null
         })
         .eq('id', matchId);
 
@@ -202,7 +267,7 @@ export const useUserMatches = (leagueId: string, userId: string) => {
           away_participant:league_participants!matches_away_user_id_fkey(team_name)
         `)
         .eq('league_id', leagueId)
-        .or(`home_user_id.eq.${userId},away_user_id.eq.${userId}`) // Sadece kullanıcının olduğu maçlar
+        .or(`home_user_id.eq.${userId},away_user_id.eq.${userId}`) // sadece kullanıcın maçları
         .order('match_order', { ascending: true });
 
       if (error) throw error;

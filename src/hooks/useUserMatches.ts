@@ -28,7 +28,7 @@ export const useUserMatches = () => {
                             username,
                             avatar_url
                         )
-                    `) // Profiles tablosunu join yaparak kullanıcı adını aldık
+                    `) // profiles tablosunu join yaparak kullanıcı adını aldık
                     .eq('league_id', currentLeagueId)
             ]);
 
@@ -41,7 +41,7 @@ export const useUserMatches = () => {
                 away_participant: participantMap.get(match.away_user_id)
             })) as Match[];
         },
-        // Veriyi sadece mevcut lig ID'sine uygunsa teslim et
+        // veriyi sadece mevcut lig ID'sine uygunsa teslim et
         select: (data) => {
             if (!currentLeagueId) return [];
             return data.filter(m => String(m.league_id) === String(currentLeagueId));

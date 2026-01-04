@@ -9,9 +9,15 @@ interface Props {
   children: React.ReactNode;
   bg?: string;
   withPadding?: boolean;
+  withBottomInset?: boolean;
 }
 
-export default function ScreenWrapper({ children, bg = '#0b0e11', withPadding = false }: Props) {
+export default function ScreenWrapper({ 
+  children, 
+  bg = '#0b0e11', 
+  withPadding = false,
+  withBottomInset = true
+}: Props) {
   const insets = useSafeAreaInsets();
 
   return (
@@ -20,8 +26,7 @@ export default function ScreenWrapper({ children, bg = '#0b0e11', withPadding = 
       style={{
         backgroundColor: bg,
         paddingTop: insets.top,
-        // Bu padding sayesinde Android navigasyon butonları içeriği asla kapatmaz
-        paddingBottom: insets.bottom > 0 ? insets.bottom : 20,
+        paddingBottom: withBottomInset ? (insets.bottom > 0 ? insets.bottom : 20) : 0,
         paddingLeft: insets.left,
         paddingRight: insets.right
       }}

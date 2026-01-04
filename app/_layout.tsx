@@ -2,7 +2,7 @@ import { supabase } from '@/api/supabase';
 import { GlobalAlert } from '@/components/common/GlobalAlert';
 import { useLeagueStore } from '@/store/useLeagueStore';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Redirect, Stack } from 'expo-router'; // Redirect eklendi
+import { Redirect, Stack } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -57,7 +57,7 @@ export default function RootLayout() {
     return () => authListener.subscription.unsubscribe();
   }, []);
 
-  // 1. Loading Durumu: Veri gelene kadar ASLA navigatörü render etme
+  // veri gelene kadar navigatörü render etme
   if (!isReady) {
     return (
       <View style={{ flex: 1, backgroundColor: '#0b0e11', justifyContent: 'center', alignItems: 'center' }}>
@@ -70,9 +70,7 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
         <Stack screenOptions={{ headerShown: false }}>
-          {/* Her iki grup da Stack içinde tanımlı kalır. 
-            Ancak ana girişte kullanıcı durumuna göre yönlendirme yapılır.
-          */}
+          {/* iki grup da stack içinde tanımlı kalır ana girişte kullanıcı durumuna göre yönlendirme yapılır */}
           <Stack.Screen name="(auth)/login" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         </Stack>
@@ -81,7 +79,6 @@ export default function RootLayout() {
         ) : (
           <Redirect href="/(auth)/login" />
         )}
-
         <GlobalAlert />
       </QueryClientProvider>
     </SafeAreaProvider>

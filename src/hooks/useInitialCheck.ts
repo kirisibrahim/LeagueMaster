@@ -12,11 +12,11 @@ export const useInitialCheck = () => {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 
-        //  Profil bilgisini store'a yaz
+        // profil bilgisini store'a yaz
         const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
         if (profile) setUserProfile(profile);
 
-        // Lig katılımını kontrol et ve ID'yi store'a yaz
+        // lig katılımını kontrol et ve store'a yaz
         const { data: participant } = await supabase
           .from('league_participants')
           .select('league_id')

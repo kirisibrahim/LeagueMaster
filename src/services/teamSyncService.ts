@@ -1,20 +1,30 @@
 import { supabase } from '@/api/supabase';
 
-const API_KEY = 'aec674c90705d3c189f1517458575485';
-const BASE_URL = 'https://v3.football.api-sports.io';
+const API_KEY = process.env.EXPO_PUBLIC_FOOTBALL_API_KEY;
+const BASE_URL = process.env.EXPO_PUBLIC_FOOTBALL_API_URL;
 
 export const syncCompleteLeague = async (leagueApiId: number) => {
+  if (!API_KEY || !BASE_URL) {
+    console.error("❌ HATA: API Yapılandırması (Key veya URL) .env dosyasında bulunamadı.");
+    return false;
+  }
   try {
-    // LİG BİLGİSİNİ ÇEK VE official_leagues TABLOSUNA KAYDET
+    const requestHeaders: HeadersInit = {
+      'x-apisports-key': API_KEY,
+      'Content-Type': 'application/json'
+    };
+
+    // lig bilgisini çek ve official_leagues tablosuna kaydet
     const leagueRes = await fetch(`${BASE_URL}/leagues?id=${leagueApiId}`, {
-      headers: { 'x-apisports-key': API_KEY }
+      headers: requestHeaders
     });
-    const leagueData = await leagueRes.json();
+
+    if (!leagueRes.ok) throw new Error(`Lig çekilemedi: ${leagueRes.statusText}`);
     
-    let dbLeagueUuid = null;
+    const leagueData = await leagueRes.json();
+    let dbLeagueUuid: string | null = null;
     
     if (leagueData.response?.[0]) {
-      // Lig verisini upsert ediyoruz
       const { data: savedLeague, error: lError } = await supabase
         .from('official_leagues')
         .upsert({
@@ -27,16 +37,20 @@ export const syncCompleteLeague = async (leagueApiId: number) => {
         .single();
       
       if (lError) throw lError;
-      dbLeagueUuid = savedLeague.id; // Veritabanının oluşturduğu UUID'yi aldık
+      dbLeagueUuid = savedLeague.id; 
     }
 
-    // TAKIMLARI ÇEK VE ALDIĞIMIZ LİG UUID'Sİ İLE KAYDET
+    // takımları çek ve aldığımız UUID ile official_teams tablosuna kaydet
+    // 2023 sezonu takımları çekiliyor
     const teamRes = await fetch(`${BASE_URL}/teams?league=${leagueApiId}&season=2023`, {
-      headers: { 'x-apisports-key': API_KEY }
+      headers: requestHeaders
     });
+
+    if (!teamRes.ok) throw new Error(`Takımlar çekilemedi: ${teamRes.statusText}`);
+    
     const teamData = await teamRes.json();
 
-    if (teamData.response && dbLeagueUuid) {
+    if (teamData.response && teamData.response.length > 0 && dbLeagueUuid) {
       const formattedTeams = teamData.response.map((item: any) => ({
         name: item.team.name,
         logo_url: item.team.logo,
@@ -49,11 +63,14 @@ export const syncCompleteLeague = async (leagueApiId: number) => {
         .upsert(formattedTeams, { onConflict: 'api_id' });
         
       if (tError) throw tError;
-      console.log(`✅ ${leagueData.response[0].league.name} ve ${formattedTeams.length} takım senkronize edildi.`);
+      
+      console.log(`✅ Başarılı: ${leagueData.response[0].league.name} ve ${formattedTeams.length} takım senkronize edildi.`);
       return true;
     }
+
+    return false;
   } catch (error: any) {
-    console.error(`❌ Lig ${leagueApiId} hatası:`, error.message);
+    console.error(`❌ Senkronizasyon Hatası (Lig ID: ${leagueApiId}):`, error.message);
     return false;
   }
 };

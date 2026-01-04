@@ -1,5 +1,5 @@
 export type LeagueStatus = 'lobby' | 'active' | 'completed';
-export type MatchStatus = 'pending' | 'completed';
+export type MatchStatus = 'pending' | 'live' | 'completed';
 
 export interface Profile {
   id: string;
@@ -52,6 +52,7 @@ export interface Match {
   match_order: number;
   status: MatchStatus;
   motm_user_id: string | null;
+  motm_id?: string | null;
   home_participant?: Participant;
   away_participant?: Participant;
 }

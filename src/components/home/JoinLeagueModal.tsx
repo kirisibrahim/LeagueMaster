@@ -2,7 +2,8 @@ import { useLeagueActions } from '@/hooks/useLeagueActions';
 import { Ionicons } from '@expo/vector-icons';
 import { styled } from 'nativewind';
 import React, { useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Modal, Platform, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Image, KeyboardAvoidingView, Modal, Platform, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import TeamPickerModal from './TeamPickerModal';
 
 const StyledView = styled(View);
 const StyledText = styled(Text);
@@ -15,15 +16,24 @@ interface Props {
 
 export default function JoinLeagueModal({ visible, onClose }: Props) {
   const [inviteCode, setInviteCode] = useState('');
-  const [teamName, setTeamName] = useState(''); // <-- 1. Yeni state eklendi
+  const [selectedTeam, setSelectedTeam] = useState<{
+    id: string;
+    name: string;
+    logo_url: string;
+  } | null>(null);
+
+  const [isTeamPickerVisible, setIsTeamPickerVisible] = useState(false);
   const { joinLeague, isSubmitting } = useLeagueActions();
 
   const handleJoin = async () => {
-    // 2. Artık joinLeague fonksiyonuna her iki bilgiyi de gönderiyoruz
-    const success = await joinLeague(inviteCode, teamName);
+    if (!selectedTeam || !inviteCode) return;
+    
+    // 3 parametre ile gönder
+    const success = await joinLeague(inviteCode, selectedTeam.name, selectedTeam.id);
+    
     if (success) {
       setInviteCode('');
-      setTeamName(''); // Temizle
+      setSelectedTeam(null);
       onClose();
     }
   };
@@ -45,7 +55,6 @@ export default function JoinLeagueModal({ visible, onClose }: Props) {
             </TouchableOpacity>
           </StyledView>
 
-          {/* DAVET KODU INPUT */}
           <StyledText className="text-gray-500 text-[10px] font-black mb-2 tracking-widest uppercase ml-1">Davet Kodu</StyledText>
           <StyledInput 
             className="bg-[#0b0e11] text-white p-5 rounded-2xl mb-5 border border-gray-800 text-center text-2xl font-black tracking-[5px]"
@@ -57,20 +66,31 @@ export default function JoinLeagueModal({ visible, onClose }: Props) {
             onChangeText={setInviteCode}
           />
 
-          {/* TAKIM ADI INPUT (Yeni Eklendi) */}
-          <StyledText className="text-gray-500 text-[10px] font-black mb-2 tracking-widest uppercase ml-1">Hangi Takımla Oynayacaksın?</StyledText>
-          <StyledInput 
-            className="bg-[#0b0e11] text-white p-5 rounded-2xl mb-8 border border-[#00ff85]/20 font-bold italic"
-            placeholder="Örn: Real Madrid, Göztepe..."
-            placeholderTextColor="#333"
-            value={teamName}
-            onChangeText={setTeamName}
-          />
+          <StyledText className="text-gray-500 text-[10px] font-black mb-2 tracking-widest uppercase ml-1">Takımını Belirle</StyledText>
+          <StyledView className="relative mb-8">
+            <TouchableOpacity
+              onPress={() => setIsTeamPickerVisible(true)}
+              className="bg-[#16191d] flex-row items-center p-4 rounded-xl border border-[#00ff85]/30"
+            >
+              <StyledView className="w-10 h-10 bg-[#0b0e11] rounded-lg items-center justify-center mr-3">
+                {selectedTeam?.logo_url ? (
+                  <Image source={{ uri: selectedTeam.logo_url }} className="w-8 h-8" resizeMode="contain" />
+                ) : (
+                  <Ionicons name="shield-outline" size={20} color="#444" />
+                )}
+              </StyledView>
+
+              <StyledText className="text-white font-bold flex-1">
+                {selectedTeam?.name || "Takımını Seç..."}
+              </StyledText>
+              <Ionicons name="chevron-forward" size={20} color="#00ff85" />
+            </TouchableOpacity>
+          </StyledView>
 
           <TouchableOpacity 
-            disabled={isSubmitting || !inviteCode || !teamName}
+            disabled={isSubmitting || !inviteCode || !selectedTeam}
             onPress={handleJoin}
-            className={`p-5 rounded-2xl shadow-xl shadow-black/40 ${isSubmitting ? 'bg-gray-800' : 'bg-[#00ff85]'}`}
+            className={`p-5 rounded-2xl shadow-xl shadow-black/40 ${isSubmitting || !selectedTeam || !inviteCode ? 'bg-gray-800' : 'bg-[#00ff85]'}`}
           >
             {isSubmitting ? (
               <ActivityIndicator color="black" />
@@ -79,6 +99,20 @@ export default function JoinLeagueModal({ visible, onClose }: Props) {
             )}
           </TouchableOpacity>
         </StyledView>
+
+        <TeamPickerModal
+          visible={isTeamPickerVisible}
+          onClose={() => setIsTeamPickerVisible(false)}
+          onSelect={(team) => {
+            // team objesini direkt state ata
+            setSelectedTeam({
+              id: team.id,
+              name: team.name,
+              logo_url: team.logo_url
+            });
+            setIsTeamPickerVisible(false);
+          }}
+        />
       </KeyboardAvoidingView>
     </Modal>
   );

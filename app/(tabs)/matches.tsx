@@ -14,13 +14,13 @@ export default function MatchesScreen() {
   const userProfile = useLeagueStore((state) => state.userProfile);
   const currentLeagueId = useLeagueStore((state) => state.currentLeagueId);
 
-  // Storeun veritabanı ile senkronizasyon durumunu takip ediyoruz.
+  // store un veritabanı ile senkrenizasyon durumu
   const isStoreSyncing = useLeagueStore((state) => state.isLoading);
 
   const { data: matches, isLoading: isQueryLoading } = useUserMatches();
 
   const filteredMatches = useMemo(() => {
-    // Store henüz yükleniyorsa veya ID yoksa veya veri gelmemişse boş dön.
+    // store yükleniyorsa, id yoksa veya veri gelmemişse boş dön
     if (isStoreSyncing || !currentLeagueId || !matches) return [];
 
     return matches.filter(m => {
@@ -33,7 +33,7 @@ export default function MatchesScreen() {
     });
   }, [matches, activeTab, currentLeagueId, isStoreSyncing]);
 
-  // Store veritabanından güncel lig durumunu alana kadar bekle.
+  // store dan güncel lig durumunu alana kadar bekle
   if (isStoreSyncing) {
     return (
       <StyledView className="flex-1 bg-[#0b0e11] justify-center items-center">
@@ -42,7 +42,7 @@ export default function MatchesScreen() {
     );
   }
 
-  //  Aktif lig gerçekten yoksa boş ekranı göster.
+  //  aktif lig yoksa bu ekran
   if (!currentLeagueId) {
     return (
       <StyledView className="flex-1 bg-[#0b0e11] p-4 justify-center items-center">
@@ -61,7 +61,6 @@ export default function MatchesScreen() {
   
   return (
     <StyledView className="flex-1 bg-[#0b0e11] p-4">
-      {/* Header */}
       <StyledView className="mt-12 mb-6 px-2">
         <StyledText className="text-white text-3xl font-black italic tracking-tighter uppercase">
           MAÇ <StyledText className="text-[#00ff85]">MERKEZİ</StyledText>
@@ -71,7 +70,6 @@ export default function MatchesScreen() {
         </StyledText>
       </StyledView>
 
-      {/* tab selector */}
       <StyledView className="flex-row bg-[#1a1d23] p-1.5 rounded-[22px] mb-6 border border-white/5 shadow-2xl">
         {(['played', 'pending'] as const).map((tab) => (
           <StyledTouch
@@ -118,9 +116,7 @@ const MatchItem = ({ match, currentUserId }: { match: Match; currentUserId?: str
     <StyledView className="bg-[#1a1d23] mb-4 p-6 rounded-[35px] border border-white/5">
       <StyledView className="flex-row justify-between items-center">
 
-        {/* evsahibi hep solda */}
         <StyledView className="items-center flex-1">
-          {/* Sensen yeşil değilsen beyaz */}
           <StyledText
             className={`font-black text-[12px] uppercase tracking-tighter ${match.home_user_id === currentUserId ? 'text-[#00ff85]' : 'text-white'
               }`}
@@ -133,7 +129,6 @@ const MatchItem = ({ match, currentUserId }: { match: Match; currentUserId?: str
             {match.home_participant?.team_name}
           </StyledText>
 
-          {/* galibiyet yeşil mağlubiyett gri */}
           <StyledText
             className={`text-3xl font-black italic mt-3 ${isHomeWinner ? 'text-[#00ff85]' : 'text-white/80'
               }`}
@@ -142,8 +137,6 @@ const MatchItem = ({ match, currentUserId }: { match: Match; currentUserId?: str
           </StyledText>
         </StyledView>
 
-
-        {/* vs alanı */}
         <StyledView className="px-4 items-center">
           <StyledView className="bg-black/40 px-3 py-1.5 rounded-xl border border-white/5 mb-1">
             <StyledText className="text-white/20 font-black italic text-[9px]">VS</StyledText>
@@ -154,8 +147,6 @@ const MatchItem = ({ match, currentUserId }: { match: Match; currentUserId?: str
           )}
         </StyledView>
 
-
-        {/* deplasman hep sağda */}
         <StyledView className="items-center flex-1">
           <StyledText
             className={`font-black text-[12px] uppercase tracking-tighter ${match.away_user_id === currentUserId ? 'text-[#00ff85]' : 'text-white'

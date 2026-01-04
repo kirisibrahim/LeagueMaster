@@ -16,20 +16,15 @@ export const useLeagueActions = () => {
   const createLeague = async (form: {
     name: string;
     teamName: string;
+    teamId: string;
     winPoints: string;
     drawPoints: string;
     lossPoints: string;
     isDoubleRound: boolean;
   }) => {
-    if (!form.name.trim() || !form.teamName.trim()) {
-      showNotification('Lütfen bir lig ismi ve seçtiğiniz takımın ismini belirleyin.');
-      return false;
-    }
-
     setIsSubmitting(true);
     try {
       const inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-
       // league tipinde oluştur
       const { data: league, error: leagueError } = await supabase
         .from('leagues')
@@ -47,7 +42,6 @@ export const useLeagueActions = () => {
         .single();
 
       if (leagueError) throw leagueError;
-
       // katılımcı ekle
       const { error: participantError } = await supabase
         .from('league_participants')
@@ -55,6 +49,7 @@ export const useLeagueActions = () => {
           league_id: league.id,
           user_id: userProfile?.id,
           team_name: form.teamName.trim(),
+          team_id: form.teamId,
         }]);
 
       if (participantError) throw participantError;
@@ -70,36 +65,34 @@ export const useLeagueActions = () => {
   };
 
   // lige katılma
-  const joinLeague = async (inviteCode: string, teamName: string) => {
+  const joinLeague = async (inviteCode: string, teamName: string, teamId: string) => {
     const code = inviteCode.trim().toUpperCase();
-    const selectedTeam = teamName.trim();
+    const selectedTeamName = teamName.trim();
 
     if (!code) {
       showNotification('Lütfen bir davet kodu girin.');
       return false;
     }
 
-    if (!selectedTeam) {
-      showNotification('Lütfen bir takım ismi seçin.');
+    if (!selectedTeamName || !teamId) {
+      showNotification('Lütfen bir takım seçin.');
       return false;
     }
 
     setIsSubmitting(true);
     try {
-      // ligi bul
+      // lig bulma
       const { data: league, error: leagueError } = await supabase
         .from('leagues')
         .select('id, name, status')
         .eq('invite_code', code)
-        .maybeSingle(); // Kayıt yoksa hata fırlatmaz, null döner.
+        .maybeSingle();
 
-      // supabase sorgu hatası
       if (leagueError) {
         handleAppError(leagueError, "JoinLeague - Fetch");
         return false;
       }
 
-      // kayıt yoksa manuel alert
       if (!league) {
         showNotification('Girdiğiniz davet kodu geçersiz.');
         return false;
@@ -110,7 +103,7 @@ export const useLeagueActions = () => {
         return false;
       }
 
-      // mevcut katılım kontrolü
+      // mevcut katılımcı kontrolü
       const { data: existing, error: existingError } = await supabase
         .from('league_participants')
         .select('id')
@@ -129,7 +122,8 @@ export const useLeagueActions = () => {
         .insert([{
           league_id: league.id,
           user_id: userProfile?.id,
-          team_name: selectedTeam,
+          team_name: selectedTeamName,
+          team_id: teamId,
         }]);
 
       if (joinError) {
@@ -141,7 +135,6 @@ export const useLeagueActions = () => {
       return true;
 
     } catch (error: any) {
-      // beklenmedik js hatası yakala
       handleAppError(error, "JoinLeague - Global");
       return false;
     } finally {
@@ -161,12 +154,12 @@ export const useLeagueActions = () => {
 
       if (rpcError) throw rpcError;
 
-      // removeQueries önbellekteki veriyi saniyeler içinde uçurur
+      // önbellek temizliği
       queryClient.removeQueries({ queryKey: ['user-matches'] });
       queryClient.removeQueries({ queryKey: ['league_details', league_id] });
       queryClient.removeQueries({ queryKey: ['standings', league_id] });
 
-      // kariyer istatistiklerini yenile çünkü lig bitti, rakamlar arttı
+      // kariyer istatistiklerini yenile 
       await queryClient.invalidateQueries({ queryKey: ['user-career-stats'] });
 
       // store sıfırla
@@ -183,7 +176,7 @@ export const useLeagueActions = () => {
     }
   };
 
-  // Ligi tamamen siler (Sadece Admin için)
+  // ligi tamamen sil
   const deleteLeague = async (leagueId: string) => {
     setIsSubmitting(true);
     try {
@@ -194,7 +187,7 @@ export const useLeagueActions = () => {
 
       if (error) throw error;
 
-      // Önbelleği temizle ve store'u sıfırla
+      // önbellek temizle ve store sıfırla
       queryClient.clear();
       setCurrentLeagueId(null);
       return true;
@@ -206,7 +199,7 @@ export const useLeagueActions = () => {
     }
   };
 
-  // Katılımcıyı ligden çıkarır (Oyuncu kendisi çıkar)
+  // oyunucu kendisi ligden çıkar
   const leaveLeague = async (leagueId: string, userId: string) => {
     setIsSubmitting(true);
     try {
@@ -218,7 +211,7 @@ export const useLeagueActions = () => {
 
       if (error) throw error;
 
-      // Kullanıcıyı ana ekrana döndür
+      // ana ekrana dön
       queryClient.invalidateQueries({ queryKey: ['lobby', leagueId] });
       setCurrentLeagueId(null);
       return true;

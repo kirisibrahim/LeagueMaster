@@ -6,7 +6,7 @@ export const useUserCareer = () => {
   const queryClient = useQueryClient();
   const userProfile = useLeagueStore((state) => state.userProfile);
 
-  // Kariyer verilerini çek
+  // kariyer verilerini çek
   const { data: stats, isLoading, refetch } = useQuery({
     queryKey: ['user-career-stats', userProfile?.id],
     enabled: !!userProfile?.id,
@@ -22,7 +22,7 @@ export const useUserCareer = () => {
     },
   });
 
-  // İstatistikleri Sıfırlama Mutasyonu
+  // istatistikleri sıfırlama mutasyonu
   const resetStats = useMutation({
     mutationFn: async () => {
       const { error } = await supabase

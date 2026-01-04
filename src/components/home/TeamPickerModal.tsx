@@ -2,16 +2,7 @@ import { supabase } from '@/api/supabase';
 import { Ionicons } from '@expo/vector-icons';
 import { styled } from 'nativewind';
 import React, { useEffect, useState } from 'react';
-import {
-    ActivityIndicator,
-    FlatList,
-    Image,
-    Modal,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
-} from 'react-native';
+import { ActivityIndicator, FlatList, Image, Modal, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 const StyledView = styled(View);
 const StyledText = styled(Text);
@@ -30,7 +21,7 @@ export default function TeamPickerModal({ visible, onClose, onSelect }: Props) {
     const [page, setPage] = useState(0);
     const ITEM_PER_PAGE = 20;
 
-    // Takımları veritabanından çekme
+    // takımmları çek
     const fetchTeams = async (query: string, pageNum: number = 0) => {
         if (loading) return;
         setLoading(true);
@@ -53,7 +44,7 @@ export default function TeamPickerModal({ visible, onClose, onSelect }: Props) {
             if (error) throw error;
 
             if (data) {
-                // Eğer ilk sayfadaysak listeyi sıfırla, değilsek üstüne ekle
+                // ilk sayfadaysak listeyi sıfırla değilsek üstüne ekle
                 setTeams(prev => pageNum === 0 ? data : [...prev, ...data]);
             }
         } catch (err) {
@@ -63,7 +54,7 @@ export default function TeamPickerModal({ visible, onClose, onSelect }: Props) {
         }
     };
 
-    // Kullanıcı yazdıkça aramayı tetikle
+    // yazdıkça aramayı tetikle
     useEffect(() => {
         if (visible) {
             setPage(0);
@@ -76,7 +67,6 @@ export default function TeamPickerModal({ visible, onClose, onSelect }: Props) {
             <StyledView className="flex-1 bg-[#0b0e11]/95 pt-20">
                 <StyledView className="flex-1 bg-[#1a1d23] rounded-t-[30px] p-4 border-t border-white/10">
 
-                    {/* HEADER */}
                     <StyledView className="flex-row justify-between items-center mb-4">
                         <StyledText className="text-[#00ff85] text-xl font-black italic">TAKIMINI SEÇ</StyledText>
                         <TouchableOpacity onPress={onClose}>
@@ -84,7 +74,6 @@ export default function TeamPickerModal({ visible, onClose, onSelect }: Props) {
                         </TouchableOpacity>
                     </StyledView>
 
-                    {/* ARAMA INPUTU */}
                     <StyledView className="bg-[#0b0e11] rounded-2xl flex-row items-center px-4 mb-4 border border-white/5">
                         <Ionicons name="search" size={20} color="#00ff85" />
                         <TextInput
@@ -96,7 +85,6 @@ export default function TeamPickerModal({ visible, onClose, onSelect }: Props) {
                         />
                     </StyledView>
 
-                    {/* LİSTE */}
                     {loading && teams.length === 0 ? (
                         <StyledView className="flex-1 justify-center items-center">
                             <ActivityIndicator color="#00ff85" size="large" />
@@ -107,7 +95,7 @@ export default function TeamPickerModal({ visible, onClose, onSelect }: Props) {
                             keyExtractor={(item) => item.id}
                             showsVerticalScrollIndicator={false}
 
-                            // SONA GELDİĞİNDE TETİKLENEN FONKSİYON
+                            // sona geldiğinde tetikle
                             onEndReached={() => {
                                 if (!loading && teams.length >= 20) {
                                     const nextPage = page + 1;
@@ -115,9 +103,7 @@ export default function TeamPickerModal({ visible, onClose, onSelect }: Props) {
                                     fetchTeams(search, nextPage);
                                 }
                             }}
-                            onEndReachedThreshold={0.5} // Liste bitmeden yüklemeye başla
-
-                            // YÜKLENİYOR İNDİKATÖRÜ
+                            onEndReachedThreshold={0.5} // liste bitmeden yüklemeye başla
                             ListFooterComponent={() =>
                                 loading ? (
                                     <StyledView className="py-4">

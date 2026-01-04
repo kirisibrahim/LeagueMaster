@@ -27,20 +27,20 @@ export function GlobalAlert() {
           )}
 
           <MotiView
-            from={{ 
-              opacity: 0, 
+            from={{
+              opacity: 0,
               translateY: isConfirm ? 20 : -50,
-              scale: isConfirm ? 0.9 : 1 
+              scale: isConfirm ? 0.9 : 1
             }}
-            animate={{ 
-              opacity: 1, 
+            animate={{
+              opacity: 1,
               translateY: isConfirm ? 0 : 0,
-              scale: 1 
+              scale: 1
             }}
-            exit={{ 
-              opacity: 0, 
+            exit={{
+              opacity: 0,
               translateY: isConfirm ? 20 : -50,
-              scale: isConfirm ? 0.9 : 1 
+              scale: isConfirm ? 0.9 : 1
             }}
             style={{
               position: 'absolute',
@@ -51,16 +51,26 @@ export function GlobalAlert() {
             }}
           >
             {isConfirm ? (
-              <StyledView className="bg-[#1a1d23] p-6 rounded-[32px] border border-gray-800 shadow-2xl items-center">
-                <StyledView className="w-16 h-16 bg-amber-500/10 rounded-full items-center justify-center mb-4">
-                  <Ionicons name="help-circle" size={32} color="#facc15" />
+              <StyledView className="bg-[#0f1115] p-8 rounded-[40px] border border-gray-800 shadow-2xl items-center">
+                <StyledView
+                  className={`w-20 h-20 rounded-full items-center justify-center mb-6 shadow-lg ${title?.includes('SİL') || title?.includes('DİKKAT') ? 'bg-red-500/10' : 'bg-[#00ff85]/10'
+                    }`}
+                >
+                  <StyledView className={`w-16 h-16 rounded-full items-center justify-center border-2 ${title?.includes('SİL') || title?.includes('DİKKAT') ? 'bg-red-500/20 border-red-500/40' : 'bg-[#00ff85]/20 border-[#00ff85]/40'
+                    }`}>
+                    <Ionicons
+                      name={title?.includes('SİL') ? "skull" : "help-circle"}
+                      size={36}
+                      color={title?.includes('SİL') ? "#ef4444" : "#00ff85"}
+                    />
+                  </StyledView>
                 </StyledView>
-                
-                <StyledText className="text-white text-xl font-black italic text-center uppercase tracking-tight">
-                  {title || 'Emin misin?'}
+
+                <StyledText className="text-white text-2xl font-black italic text-center uppercase tracking-tighter leading-7">
+                  {title}
                 </StyledText>
-                
-                <StyledText className="text-gray-400 text-center mt-2 mb-6 font-medium">
+
+                <StyledText className="text-gray-400 text-center mt-3 mb-8 font-medium leading-5 px-2">
                   {message}
                 </StyledText>
 
@@ -72,14 +82,16 @@ export function GlobalAlert() {
                         hideNotification();
                         btn.onPress();
                       }}
-                      className={`h-14 rounded-2xl items-center justify-center mb-3 shadow-sm ${
-                        btn.style === 'destructive' ? 'bg-red-500' : 
-                        btn.style === 'cancel' ? 'bg-gray-800' : 'bg-[#00ff85]'
-                      }`}
+                      activeOpacity={0.8}
+                      className={`h-16 rounded-[20px] items-center justify-center mb-3 flex-row ${btn.style === 'destructive' ? 'bg-red-500' :
+                          btn.style === 'cancel' ? 'bg-[#1a1d23] border border-gray-700' : 'bg-[#00ff85]'
+                        }`}
                     >
-                      <StyledText className={`font-black uppercase italic tracking-widest text-xs ${
-                        btn.style === 'destructive' || btn.style === 'cancel' ? 'text-white' : 'text-black'
-                      }`}>
+                      {btn.style === 'destructive' && (
+                        <Ionicons name="trash-outline" size={18} color="white" style={{ marginRight: 8 }} />
+                      )}
+                      <StyledText className={`font-black uppercase italic tracking-[2px] text-sm ${btn.style === 'destructive' || btn.style === 'cancel' ? 'text-white' : 'text-black'
+                        }`}>
                         {btn.text}
                       </StyledText>
                     </TouchableOpacity>
@@ -88,19 +100,17 @@ export function GlobalAlert() {
               </StyledView>
             ) : (
               <TouchableOpacity onPress={hideNotification} activeOpacity={0.9}>
-                <StyledView 
-                  className={`p-4 rounded-2xl border flex-row items-center shadow-2xl ${
-                    type === 'error' ? 'bg-[#1a1313] border-red-500/50' : 'bg-[#0b1a14] border-[#00ff85]/50'
-                  }`}
+                <StyledView
+                  className={`p-4 rounded-2xl border flex-row items-center shadow-2xl ${type === 'error' ? 'bg-[#1a1313] border-red-500/50' : 'bg-[#0b1a14] border-[#00ff85]/50'
+                    }`}
                 >
-                  <Ionicons 
-                    name={type === 'error' ? "alert-circle" : "checkmark-circle"} 
-                    size={20} 
-                    color={type === 'error' ? "#ef4444" : "#00ff85"} 
+                  <Ionicons
+                    name={type === 'error' ? "alert-circle" : "checkmark-circle"}
+                    size={20}
+                    color={type === 'error' ? "#ef4444" : "#00ff85"}
                   />
-                  <StyledText className={`ml-3 font-bold text-sm flex-1 ${
-                    type === 'error' ? 'text-red-500' : 'text-[#00ff85]'
-                  }`}>
+                  <StyledText className={`ml-3 font-bold text-sm flex-1 ${type === 'error' ? 'text-red-500' : 'text-[#00ff85]'
+                    }`}>
                     {message}
                   </StyledText>
                 </StyledView>

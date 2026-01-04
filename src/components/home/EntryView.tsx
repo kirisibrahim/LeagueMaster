@@ -26,8 +26,7 @@ export const EntryView = () => {
           paddingBottom: insets.bottom + 20 
         }}
       >
-        
-        {/* Üst Bar: Profil Rozeti */}
+    
         <StyledView className="items-center mb-6">
           <MotiView 
             from={{ opacity: 0, translateY: -10 }} 
@@ -41,7 +40,6 @@ export const EntryView = () => {
           </MotiView>
         </StyledView>
 
-        {/* Orta Kısım: Logo ve Karşılama */}
         <StyledView className="flex-1 justify-center items-center">
           <MotiView 
             from={{ opacity: 0, scale: 0.8 }}
@@ -73,7 +71,6 @@ export const EntryView = () => {
           </MotiView>
         </StyledView>
 
-        {/* Alt Kısım: Aksiyon Butonları */}
         <StyledView className="w-full space-y-4 mb-6">
           <MotiView
             from={{ opacity: 0, translateY: 20 }}
@@ -110,7 +107,6 @@ export const EntryView = () => {
           </MotiView>
         </StyledView>
 
-        {/* Modallar */}
         <CreateLeagueModal
           visible={modals.create}
           onClose={() => setModals({ ...modals, create: false })}

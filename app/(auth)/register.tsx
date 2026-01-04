@@ -65,7 +65,7 @@ export default function RegisterScreen() {
 
       if (authError) throw authError;
 
-      // Profiles Tablosu Güncelleme: 
+      // profil tablosu güncelleme 
       if (authData.user) {
         const { error: profileError } = await supabase
           .from('profiles')
@@ -105,8 +105,6 @@ export default function RegisterScreen() {
           showsVerticalScrollIndicator={false}
         >
           <StyledView className="flex-1 justify-center p-8">
-
-            {/* ÜST BAŞLIK */}
             <MotiView
               from={{ opacity: 0, translateY: -20 }}
               animate={{ opacity: 1, translateY: 0 }}
@@ -129,7 +127,6 @@ export default function RegisterScreen() {
               </StyledView>
             </MotiView>
 
-            {/* FORM ALANI */}
             <MotiView
               from={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -159,7 +156,6 @@ export default function RegisterScreen() {
                 />
               </StyledView>
 
-              {/* FAVORİ TAKIM SEÇİM ALANI */}
               <StyledView className="bg-[#1a1d23] rounded-2xl border border-white/5 p-4 mb-4">
                 <StyledView className="flex-row items-center mb-3">
                   <StyledView className="w-1 h-3 bg-[#00ff85] rounded-full mr-2" />
@@ -223,7 +219,6 @@ export default function RegisterScreen() {
               </StyledView>
             </MotiView>
 
-            {/* AKSİYON BUTONLARI */}
             <MotiView
               from={{ opacity: 0, translateY: 20 }}
               animate={{ opacity: 1, translateY: 0 }}
@@ -262,7 +257,6 @@ export default function RegisterScreen() {
         </ScrollView>
       </TouchableWithoutFeedback>
 
-      {/* TEAM PICKER MODAL */}
       <TeamPickerModal
         visible={isModalVisible}
         onClose={() => setIsModalVisible(false)}

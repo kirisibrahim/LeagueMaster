@@ -10,10 +10,11 @@ import { useQueryClient } from '@tanstack/react-query';
 import * as Clipboard from 'expo-clipboard';
 import { styled } from 'nativewind';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, FlatList, Share, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, Image, Share, Text, TouchableOpacity, View } from 'react-native';
 
 const StyledView = styled(View);
 const StyledText = styled(Text);
+const StyledImage = styled(Image);
 
 interface Props {
   league: any;
@@ -35,24 +36,23 @@ export default function LobbyView({ league, isAdmin, onRefresh }: Props) {
     if (!league?.id) return;
 
     const lobbyChannel = supabase
-      .channel(`lobby_${league.id}`)
+      .channel(`lobby:${league.id}`)
       .on(
         'postgres_changes',
         {
-          event: '*', // Her türlü değişikliği dinle
+          event: '*',
           schema: 'public',
           table: 'league_participants',
           filter: `league_id=eq.${league.id}`,
         },
         (payload) => {
-          console.log("Canlı veri değişikliği:", payload.eventType);
-          // Herhangi bir değişiklikte (ekleme/silme) listeyi yenile
+          // realtime geldiğinde cache temizle
+          queryClient.invalidateQueries({ queryKey: ['lobby', league.id] });
           onRefresh();
         }
       )
       .subscribe();
 
-    // Temizlik Ekrandan çıkınca aboneliği iptal et
     return () => {
       supabase.removeChannel(lobbyChannel);
     };
@@ -78,14 +78,14 @@ export default function LobbyView({ league, isAdmin, onRefresh }: Props) {
 
   const handleExitAction = () => {
     if (isAdmin) {
-      // ADMIN İÇİN: Lobi İptali
+      // admin için lobi iptal
       showConfirm(
         'DİKKAT: Lobi Siliniyor!',
         'Bu turnuvayı iptal etmek üzeresin. Tüm katılımcılar lobiden atılacak ve bu işlem geri alınamaz. Emin misin?',
         [
           {
             text: 'VAZGEÇ',
-            onPress: () => { }, // Sadece kapatır
+            onPress: () => { },
             style: 'cancel'
           },
           {
@@ -103,7 +103,7 @@ export default function LobbyView({ league, isAdmin, onRefresh }: Props) {
         ]
       );
     } else {
-      // KATILIMCI İÇİN: Lobiden Ayrılma
+      // katılımcı için lobiden ayrıl
       showConfirm(
         'Lobiden Ayrıl',
         'Bu arenadan ayrılmak istediğine emin misin? Takımın listeden silinecek.',
@@ -128,9 +128,8 @@ export default function LobbyView({ league, isAdmin, onRefresh }: Props) {
 
   const copyToClipboard = async () => {
     try {
-      // expo-clipboard ile async güvenli kopyalama
+      // kopyalama
       await Clipboard.setStringAsync(league?.invite_code);
-
       showNotification('Davet kodu başarıyla kopyalandı!', 'success');
     } catch (error) {
       showNotification('Kopyalama sırasında bir hata oluştu.', 'error');
@@ -152,6 +151,8 @@ export default function LobbyView({ league, isAdmin, onRefresh }: Props) {
         .eq('id', participantId);
 
       if (error) throw error;
+      // yerel önbelleği temizle
+      await queryClient.invalidateQueries({ queryKey: ['lobby', league.id] });
 
       showNotification(`${teamName} lobiden atıldı.`, 'success');
       onRefresh();
@@ -165,7 +166,6 @@ export default function LobbyView({ league, isAdmin, onRefresh }: Props) {
     <ScreenWrapper>
       <StyledView className="flex-1 bg-[#0b0e11] px-6">
 
-        {/* 1. DAVET KODU KARTI */}
         <StyledView className="mt-2 bg-[#1a1d23] p-4 rounded-[24px] border border-[#00ff85]/20 items-center">
           <StyledText className="text-gray-500 text-[9px] font-bold uppercase tracking-[3px] mb-2">Lobi Erişim Kodu</StyledText>
           <StyledText className="text-white text-4xl font-black italic tracking-[6px] mb-2">
@@ -191,7 +191,6 @@ export default function LobbyView({ league, isAdmin, onRefresh }: Props) {
           </StyledView>
         </StyledView>
 
-        {/* 2. LİG BAŞLIĞI */}
         <StyledView className="mt-6 mb-4 px-4">
           <StyledView className="flex-row items-center justify-between">
             <StyledView className="flex-row items-center">
@@ -223,7 +222,6 @@ export default function LobbyView({ league, isAdmin, onRefresh }: Props) {
           </StyledView>
         </StyledView>
 
-        {/* KATILIMCI LİSTESİ */}
         <StyledView className="flex-1 px-4">
           <FlatList
             data={participants}
@@ -232,9 +230,9 @@ export default function LobbyView({ league, isAdmin, onRefresh }: Props) {
             contentContainerStyle={{ paddingBottom: 180, paddingTop: 10 }}
             renderItem={({ item, index }) => {
               const isLeader = item.user_id === league.admin_id;
-              // Mevcut kullanıcı admin mi ve bu satırdaki kişi kendisi mi?
+              // kullnıcının admin mi olduğu kontrolü
               const isMe = item.user_id === userProfile?.id;
-              const canKick = isAdmin && !isLeader; // Sadece admin başkasını atabilir
+              const canKick = isAdmin && !isLeader; //sadece admin lobiden oyuncu atabilir
 
               return (
                 <StyledView
@@ -243,7 +241,6 @@ export default function LobbyView({ league, isAdmin, onRefresh }: Props) {
                     : 'bg-[#0b0e11]/50 border-gray-800/40'
                     }`}
                 >
-                  {/* Sol: Sıralama ve Ayrım */}
                   <StyledView className="flex-row items-center mr-4">
                     <StyledText className={`font-black italic text-[10px] w-5 ${isLeader ? 'text-[#00ff85]' : 'text-gray-700'}`}>
                       {(index + 1).toString().padStart(2)}
@@ -251,22 +248,33 @@ export default function LobbyView({ league, isAdmin, onRefresh }: Props) {
                     <StyledView className={`w-[1px] h-6 ${isLeader ? 'bg-[#00ff85]/40' : 'bg-gray-800'} ml-1`} />
                   </StyledView>
 
-                  {/* Orta: Bilgiler */}
-                  <StyledView className="flex-1">
-                    <StyledText
-                      numberOfLines={1}
-                      className={`font-bold text-[13px] uppercase tracking-tight ${isLeader ? 'text-[#00ff85]' : 'text-gray-200'}`}
-                    >
-                      {item.team_name}
-                    </StyledText>
-                    <StyledText className="text-gray-600 text-[9px] font-medium tracking-wider mt-0.5">
-                      @{item.profiles?.username || 'oyuncu'}
-                    </StyledText>
+                  <StyledView className="flex-1 flex-row items-center">
+                    <StyledView className="w-8 h-8 bg-[#1a1d23] rounded-lg items-center justify-center mr-3 border border-white/5 overflow-hidden">
+                      {item.official_teams?.logo_url ? (
+                        <Image
+                          source={{ uri: item.official_teams.logo_url }}
+                          className="w-6 h-6"
+                          resizeMode="contain"
+                        />
+                      ) : (
+                        <Ionicons name="shield-outline" size={16} color="#4b5563" />
+                      )}
+                    </StyledView>
+
+                    <StyledView className="flex-1">
+                      <StyledText
+                        numberOfLines={1}
+                        className={`font-bold text-[13px] uppercase tracking-tight ${isLeader ? 'text-[#00ff85]' : 'text-gray-200'}`}
+                      >
+                        {item.team_name}
+                      </StyledText>
+                      <StyledText className="text-gray-600 text-[9px] font-medium tracking-wider mt-0.5">
+                        @{item.profiles?.username || 'oyuncu'}
+                      </StyledText>
+                    </StyledView>
                   </StyledView>
 
-                  {/* Sağ: Rol ve Aksiyon Alanı */}
                   <StyledView className="flex-row items-center">
-                    {/* Rol Etiketi */}
                     <StyledView className={`px-3 py-1 rounded-lg border ${isLeader ? 'bg-[#00ff85]/5 border-[#00ff85]/10' : 'bg-gray-800/20 border-gray-800/40'
                       }`}>
                       <StyledText className={`text-[7px] font-black uppercase tracking-[1px] ${isLeader ? 'text-[#00ff85]' : 'text-gray-500'
@@ -275,26 +283,25 @@ export default function LobbyView({ league, isAdmin, onRefresh }: Props) {
                       </StyledText>
                     </StyledView>
 
-                    {/* Kick Butonu - Sadece Admin Başkası İçin Görür */}
                     {canKick && (
                       <TouchableOpacity
                         onPress={() => {
                           showConfirm(
-                            'Oyuncuyu Uzaklaştır',
-                            `${item.team_name} takımını lobiden atmak istediğine emin misin?`,
+                            'OYUNCUYU KOV',
+                            `${item.team_name} takımı lobiden ihraç edilecek. Onaylıyor musun?`,
                             [
-                              { text: 'İPTAL', style: 'cancel', onPress: () => { } },
+                              { text: 'VAZGEÇ', style: 'cancel', onPress: () => { } },
                               {
-                                text: 'LOBİDEN AT',
+                                text: 'EVET, KOV',
                                 style: 'destructive',
                                 onPress: () => handleKickPlayer(item.id, item.team_name)
                               }
                             ]
                           );
                         }}
-                        className="ml-3 w-8 h-8 rounded-full bg-red-500/10 items-center justify-center border border-red-500/20"
+                        className="ml-2 w-8 h-8 rounded-xl bg-red-500/10 items-center justify-center border border-red-500/20 active:bg-red-500"
                       >
-                        <Ionicons name="close" size={16} color="#ef4444" />
+                        <Ionicons name="trash" size={18} color="#ef4444" />
                       </TouchableOpacity>
                     )}
                   </StyledView>
@@ -303,11 +310,9 @@ export default function LobbyView({ league, isAdmin, onRefresh }: Props) {
             }}
           />
         </StyledView>
-        {/* AKSİYON ALANI */}
         <StyledView className="absolute bottom-0 left-6 right-6 bg-[#0b0e11]/95 pt-2">
           {isAdmin ? (
             <StyledView>
-              {/* ANA AKSİYON: BAŞLAT */}
               <TouchableOpacity
                 onPress={handleStartEngine}
                 disabled={actionLoading || participants.length < 2}
@@ -318,24 +323,25 @@ export default function LobbyView({ league, isAdmin, onRefresh }: Props) {
                   <ActivityIndicator color="black" />
                 ) : (
                   <>
-                    <StyledText className={`font-black text-base uppercase mr-2 italic ${participants.length < 2 ? 'text-gray-500' : 'text-black'}`}>
-                      Savaşı Başlat
+                    <Ionicons name="flash" size={18} color={participants.length < 2 ? "#4b5563" : "black"} />
+                    <StyledText className={`font-black text-base uppercase mr-2 ml-2 italic ${participants.length < 2 ? 'text-gray-500' : 'text-black'}`}>
+                      LİGİ BAŞLAT
                     </StyledText>
                     <Ionicons name="flash" size={18} color={participants.length < 2 ? "#4b5563" : "black"} />
                   </>
                 )}
               </TouchableOpacity>
 
-              {/*İPTAL ET */}
               <TouchableOpacity
                 onPress={handleExitAction}
                 className="h-14 rounded-2xl items-center justify-center border-2 border-red-500/50 bg-red-500/10 active:bg-red-500/20"
               >
                 <StyledView className="flex-row items-center">
-                  <Ionicons name="alert-circle-outline" size={16} color="#ef4444" className="mr-2" />
-                  <StyledText className="text-red-500 font-black uppercase tracking-[1px] text-xs">
-                    Turnuvayı İptal Et ve Sil
+                  <Ionicons name="alert-circle-outline" size={16} color="#ef4444" />
+                  <StyledText className="text-red-500 font-black uppercase tracking-[1px] text-xs ml-2 mr-2">
+                    LİGİ İPTAL ET
                   </StyledText>
+                  <Ionicons name="alert-circle-outline" size={16} color="#ef4444" />
                 </StyledView>
               </TouchableOpacity>
             </StyledView>

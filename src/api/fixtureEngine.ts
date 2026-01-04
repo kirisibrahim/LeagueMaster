@@ -14,7 +14,7 @@ export const startLeagueAndGenerateFixtures = async (leagueId: string) => {
     
     if (participants.length < 2) throw new Error("En az 2 oyuncu gerekli.");
 
-    // Fikstür algoritması, herkes birbiriyle maç yapıyor
+    // fikstür algoritması
     let matches = [];
     for (let i = 0; i < participants.length; i++) {
       for (let j = i + 1; j < participants.length; j++) {
@@ -42,7 +42,7 @@ export const startLeagueAndGenerateFixtures = async (leagueId: string) => {
       }
     }
 
-    // maçları karıştır ve match_order ata
+    // maçları karıştır ve sıra ata
     matches = matches.sort(() => Math.random() - 0.5);
     const finalMatches = matches.map((m, index) => ({
       ...m,

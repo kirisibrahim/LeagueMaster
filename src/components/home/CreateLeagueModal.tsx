@@ -1,19 +1,11 @@
 import { GlobalAlert } from '@/components/common/GlobalAlert';
 import { useLeagueActions } from '@/hooks/useLeagueActions';
+import { useNotificationStore } from '@/store/useNotificationStore';
 import { Ionicons } from '@expo/vector-icons';
 import { styled } from 'nativewind';
-import React, { useState } from 'react';
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View
-} from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, Image, KeyboardAvoidingView, Modal, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import TeamPickerModal from './TeamPickerModal';
 
 const StyledView = styled(View);
 const StyledText = styled(Text);
@@ -32,8 +24,12 @@ export default function CreateLeagueModal({ visible, onClose }: Props) {
     drawPoints: '1',
     lossPoints: '0',
     type: 'league',
+    selectedTeamLogo: '',
+    team_id: '',
     isDoubleRound: false
   });
+  const [isTeamPickerVisible, setIsTeamPickerVisible] = useState(false);
+  const { showNotification } = useNotificationStore();
 
   const { createLeague, isSubmitting } = useLeagueActions();
 
@@ -42,7 +38,21 @@ export default function CreateLeagueModal({ visible, onClose }: Props) {
   };
 
   const handleCreate = async () => {
-    const success = await createLeague(form);
+    if (!form.name.trim() || !form.team_id) {
+      showNotification('Lütfen bir lig ismi girin ve takımınızı seçin.');
+      return;
+    }
+
+    const success = await createLeague({
+      name: form.name,
+      teamName: form.teamName,
+      teamId: form.team_id,
+      winPoints: form.winPoints,
+      drawPoints: form.drawPoints,
+      lossPoints: form.lossPoints,
+      isDoubleRound: form.isDoubleRound,
+    });
+
     if (success) onClose();
   };
 
@@ -62,7 +72,6 @@ export default function CreateLeagueModal({ visible, onClose }: Props) {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           className="flex-1"
         >
-          {/* HEADER */}
           <StyledView className="pt-8 pb-8 px-8 flex-row justify-between items-center border-b border-white/5">
             <StyledView>
               <StyledView className="flex-row items-center mb-1">
@@ -88,7 +97,6 @@ export default function CreateLeagueModal({ visible, onClose }: Props) {
             className="flex-1 px-4"
             contentContainerStyle={{ paddingTop: 24, paddingBottom: 24 }}
           >
-            {/* kimlik*/}
             <StyledView className="mb-4 space-y-4">
               <StyledView>
                 <StyledView className="flex-row items-center mb-2 ml-1">
@@ -115,23 +123,28 @@ export default function CreateLeagueModal({ visible, onClose }: Props) {
                   <StyledText className="text-white/60 text-[11px] font-bold uppercase tracking-widest ml-2">Seçtiğin Takım</StyledText>
                 </StyledView>
                 <StyledView className="relative">
-                  <StyledInput
-                    className="bg-[#16191d] text-white pl-14 pr-4 py-4 rounded-xl border border-[#00ff85]/30 font-black text-lg italic shadow-inner"
-                    placeholder="Örn: Liverpool..."
-                    placeholderTextColor="#444"
-                    value={form.teamName}
-                    onChangeText={(val) => updateForm('teamName', val)}
-                  />
-                  <StyledView className="absolute left-5 top-5">
-                    <Ionicons name="shirt-outline" size={20} color="#00ff85" />
-                  </StyledView>
+                  <TouchableOpacity
+                    onPress={() => setIsTeamPickerVisible(true)}
+                    className="bg-[#16191d] flex-row items-center p-4 rounded-xl border border-[#00ff85]/30"
+                  >
+                    <StyledView className="w-10 h-10 bg-[#0b0e11] rounded-lg items-center justify-center mr-3">
+                      {form.selectedTeamLogo ? (
+                        <Image source={{ uri: form.selectedTeamLogo }} className="w-8 h-8" resizeMode="contain" />
+                      ) : (
+                        <Ionicons name="shield-outline" size={20} color="#444" />
+                      )}
+                    </StyledView>
+
+                    <StyledText className="text-white font-bold flex-1">
+                      {form.teamName || "Takımını Seç..."}
+                    </StyledText>
+                    <Ionicons name="chevron-forward" size={20} color="#00ff85" />
+                  </TouchableOpacity>
                 </StyledView>
               </StyledView>
             </StyledView>
 
-            {/* oyun kuralları */}
             <StyledView className="mb-4 p-4 bg-[#16191d] rounded-xl border border-[#00ff85]/30 relative overflow-hidden">
-              {/* Arka Plan Süsü */}
               <StyledView className="absolute -right-10 -top-10">
                 <Ionicons name="settings" size={150} color="white" style={{ opacity: 0.04 }} />
               </StyledView>
@@ -155,7 +168,7 @@ export default function CreateLeagueModal({ visible, onClose }: Props) {
                         className="text-white font-black text-2xl text-center py-2"
                         style={{ color: item.color }}
                         keyboardType="numeric"
-                        selectTextOnFocus={true} // Tıklayınca metni otomatik seçer
+                        selectTextOnFocus={true} // dokununca metni otomatik seçer
                         returnKeyType="done"
                         maxLength={2}
                         value={form[item.key as keyof typeof form] as string}
@@ -194,7 +207,6 @@ export default function CreateLeagueModal({ visible, onClose }: Props) {
               </StyledView>
             </StyledView>
 
-            {/* action button */}
             <StyledView className="shadow-[#00ff85]/40 shadow-2xl">
               <TouchableOpacity
                 onPress={handleCreate}
@@ -218,6 +230,15 @@ export default function CreateLeagueModal({ visible, onClose }: Props) {
           </ScrollView>
         </KeyboardAvoidingView>
         <GlobalAlert />
+        <TeamPickerModal
+          visible={isTeamPickerVisible}
+          onClose={() => setIsTeamPickerVisible(false)}
+          onSelect={(team) => {
+            updateForm('teamName', team.name);
+            updateForm('team_id', team.id);
+            updateForm('selectedTeamLogo', team.logo_url);
+          }}
+        />
       </StyledView>
     </Modal>
   );

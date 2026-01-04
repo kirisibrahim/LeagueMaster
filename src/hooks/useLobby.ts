@@ -10,26 +10,40 @@ export function useLobby(leagueId: string | null) {
     queryFn: async () => {
       if (!leagueId) return null;
 
-      // performan için iki sorgu aynı anda
-      const [leagueRes, participantsRes] = await Promise.all([
+      // üç sorguyu aynı anda lig katılımcılar ve resmi takımlar
+      const [leagueRes, participantsRes, teamsRes] = await Promise.all([
         supabase.from('leagues').select('*').eq('id', leagueId).single(),
-        supabase.from('league_participants')
-          .select('*, profiles(username)')
-          .eq('league_id', leagueId)
+        supabase.from('league_participants').select('*, profiles(username)').eq('league_id', leagueId),
+        supabase.from('official_teams').select('id, logo_url')
       ]);
 
       if (leagueRes.error) throw leagueRes.error;
+      if (participantsRes.error) throw participantsRes.error;
+
+      // takımları eşleştirmek için map (performans)
+      const teamLogosMap = new Map(
+        teamsRes.data?.map(team => [team.id, team.logo_url]) || []
+      );
+
+      // katılımcılara logoları manuel yerleştirme
+      const participantsWithLogos = (participantsRes.data || []).map(p => ({
+        ...p,
+        official_teams: {
+          logo_url: teamLogosMap.get(p.team_id) || null
+        }
+      }));
 
       return {
         league: leagueRes.data,
-        participants: participantsRes.data || [],
+        participants: participantsWithLogos,
       };
     },
     enabled: !!leagueId,
-    staleTime: 1000 * 60 * 5,
+    staleTime: 0,
+    gcTime: 0,
   });
 
-  // Realtime Dinleyici: katılımcı veya lig durumu değiştiğinde dashboardu tetikler
+  // realtime: katılımcı veya lig durumu değiştiğinde dashboardu tetikle
   useEffect(() => {
     if (!leagueId) return;
 

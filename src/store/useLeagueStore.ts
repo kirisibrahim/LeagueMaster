@@ -2,7 +2,7 @@ import { supabase } from '@/api/supabase';
 import { LeagueStatus, Profile } from '@/types/database';
 import { create } from 'zustand';
 
-// profile tipini logo_url içerecek şekilde genişletiyoruz
+// profile tipini logo_url ekleyerek genişlet
 export interface ProfileWithLogo extends Profile {
   logo_url?: string;
 }
@@ -14,7 +14,7 @@ interface LeagueState {
   isLoading: boolean;
   setCurrentLeagueId: (id: string | null) => void;
   setUserProfile: (profile: ProfileWithLogo | null) => void;
-  fetchProfile: (userId: string) => Promise<void>; // Profil ve logoyu çeken fonksiyon
+  fetchProfile: (userId: string) => Promise<void>;
   syncActiveLeague: (userId: string) => Promise<void>;
   logout: () => void;
 }
@@ -31,13 +31,13 @@ export const useLeagueStore = create<LeagueState>((set) => ({
     userProfile: profile
       ? {
         ...profile,
-        // Eğer yeni gelen veride logo yoksa, hafızadaki (state) mevcut logoyu koru
+        // gelen veri de logo yoksa state deki logoyu koru
         logo_url: (profile as any).logo_url || state.userProfile?.logo_url
       }
       : null
   })),
 
-  // Profili ve Logoyu İlişkisel Olarak Çekme
+  // profil ve logoyu ilişkisel olarak çek
   fetchProfile: async (userId: string) => {
     try {
       const { data, error } = await supabase
@@ -58,7 +58,7 @@ export const useLeagueStore = create<LeagueState>((set) => ({
 
         const formattedProfile: ProfileWithLogo = {
           ...data,
-          logo_url: logo // Logoyu buraya zorla yazıyoruz
+          logo_url: logo // logoyu zorla yaz
         };
 
         set({ userProfile: formattedProfile });
@@ -70,7 +70,7 @@ export const useLeagueStore = create<LeagueState>((set) => ({
     }
   },
 
-  // Aktif Lig Senkronizasyonu (Mevcut mantığın korundu)
+  // aktif lig senkranizasyonu
   syncActiveLeague: async (userId: string) => {
     set({ isLoading: true, currentLeagueId: undefined });
     try {
