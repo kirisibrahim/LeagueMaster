@@ -6,11 +6,12 @@
 
 ## 🏆 LeagueMaster
 
+<p align="center">
+  <img src="screenshots/app-flow.gif" width="240" />
+</p>
+
 >LeagueMaster, arkadaş grupları ve turnuva düzenleyen gruplar için geliştirilmiş; yüksek performanslı, gerçek zamanlı (real-time) senkronizasyon yeteneklerine sahip bir lig yönetim ekosistemidir.
 
-## 🎥 App Flow
-
-https://github.com/kirisibrahim/LeagueMaster/blob/main/screenshots/app-flow.mp4
 
 ### 🚀 Öne Çıkan Özellikler
 
