@@ -1,3 +1,9 @@
+![MIT License](https://img.shields.io/badge/License-MIT-green.svg)
+![TypeScript](https://img.shields.io/badge/TypeScript-4.x-blue.svg)
+![Expo](https://img.shields.io/badge/Expo-SDK-black)
+![Supabase](https://img.shields.io/badge/Supabase-Postgres-3ECF8E)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-PL%2FpgSQL-336791)
+
 ## 🏆 LeagueMaster
 
 >LeagueMaster, arkadaş grupları ve turnuva düzenleyen gruplar için geliştirilmiş; yüksek performanslı, gerçek zamanlı (real-time) senkronizasyon yeteneklerine sahip bir lig yönetim ekosistemidir.
@@ -14,6 +20,8 @@
 
 
 ### 📱 App Screenshots
+
+> Ekran görüntüleri üzerine tıklayarak tam boy görüntüleyebilirsiniz.
 
 <p align="center">
   <a href="https://raw.githubusercontent.com/kirisibrahim/LeagueMaster/main/screenshots/foto1.jpeg">
@@ -228,3 +236,7 @@ npx expo start
 ## 🤝 Katkıda Bulunma
 
 > Katkıda bulunmak için önce bir "Issue" açabilir veya "Pull Request" gönderebilirsiniz.
+
+## 📄 License
+
+Bu proje MIT Lisansı ile lisanslanmıştır.
