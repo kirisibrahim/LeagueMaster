@@ -62,7 +62,7 @@
 | **official_leagues** | Senkronize edilmiş gerçek dünya ligleri kütüphanesi. | `name`, `country`, `api_id`, `logo_url` |
 | **official_teams** | Profesyonel takımlar, logolar ve kurumsal renkler. | `name`, `colors (jsonb)`, `api_id`, `league_id` |
 
-### Sistem Mimari Şeması ve Veri Akışı
+### Sistem Mimari Şeması
 
 ```mermaid
 graph TD
@@ -100,3 +100,59 @@ graph TD
 
     OT -->|Takim Verisi| LP
 ```
+
+#### Şemanın Teknik Özeti
+
+- **Decoupled Architecture:** Lig istatistikleri (LP) ile genel kariyer verileri (UCS) birbirinden ayrılarak veri yoğunluğu optimize edilmiştir.
+
+- **Trigger-Based Accuracy:** Puan durumu hesaplamaları uygulama tarafında değil, veritabanı seviyesinde trigger_update_standings ile yapılarak veri tutarlılığı (Data Integrity) garanti altına alınmıştır.
+
+- **Event-Driven Stats:** Maçlar tamamlandığında (on_match_update), global istatistikler asenkron bir tetikleyici ile güncellenir.
+
+## ⚙️ Kurulum ve Başlatma
+
+1. Depoyu Klonlayın:
+
+```bash
+git clone https://github.com/kullaniciadi/LeagueMaster.git
+cd LeagueMaster
+```
+
+2. Bağımlılıkları Yükleyin:
+
+```bash
+npm install
+```
+
+3. Çevresel Değişkenleri Ayarlayın(.env):
+
+```
+EXPO_PUBLIC_SUPABASE_URL=your_supabase_url
+EXPO_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+EXPO_PUBLIC_FOOTBALL_API_KEY=your_api_sports_key
+EXPO_PUBLIC_FOOTBALL_API_URL=https://v3.football.api-sports.io
+```
+
+4. Veritabanı Kurulumu:
+
+> supabase/migrations klasöründeki SQL dosyalarını Supabase Dashboard veya CLI üzerinden çalıştırarak PL/pgSQL fonksiyonlarını ve tetikleyicileri tanımlayın.
+
+5. Uygulamayı Çalıştırın:
+
+```bash
+npx expo start
+```
+
+## 📈 Gelecek Yol Haritası (Roadmap)
+
+- **[ ] Push Notifications:** Maç başlangıçları ve kritik skorlar için Expo Notifications.
+
+- **[ ] Eleme Usulü (Knockout) Desteği:** Şampiyonlar Ligi tarzı turnuva formatı.
+
+- **[ ] Detaylı Analitikler:** Victory Native ile maç bazlı oyuncu rating ve performans grafikleri.
+
+- **[ ] Lig İçi Chat:** Takımlar için real-time mesajlaşma modülü.
+
+## 🤝 Katkıda Bulunma
+
+> Katkıda bulunmak için önce bir "Issue" açabilir veya "Pull Request" gönderebilirsiniz.
