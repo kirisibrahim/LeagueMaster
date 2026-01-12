@@ -1,5 +1,3 @@
----
----
 ## 🏆 LeagueMaster
 
 >LeagueMaster, arkadaş grupları ve turnuva düzenleyen gruplar için geliştirilmiş; yüksek performanslı, gerçek zamanlı (real-time) senkronizasyon yeteneklerine sahip bir lig yönetim ekosistemidir.
