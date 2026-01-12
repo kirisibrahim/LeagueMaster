@@ -1,0 +1,102 @@
+---
+---
+## 🏆 LeagueMaster
+
+>LeagueMaster, arkadaş grupları ve turnuva düzenleyen gruplar için geliştirilmiş; yüksek performanslı, gerçek zamanlı (real-time) senkronizasyon yeteneklerine sahip bir lig yönetim ekosistemidir.
+
+### 🚀 Öne Çıkan Özellikler
+
+- **Real-time Lobby:** Kullanıcılar liglere davet koduyla katılırken, lobiye giren her oyuncu anlık olarak tüm katılımcılar tarafından görülür.
+- **Dinamik Fikstür Motoru (PL/pgSQL):** Lig başlatıldığı anda Round Robin algoritması ile tek veya çift devreli fikstürleri PostgreSQL seviyesinde (RPC) milisaniyeler içinde oluşturur.
+- **Live Score & Canlı Puan Durumu:** Maçlar oynanırken (live statüsünde) girilen skorlar, puan durumuna anlık yansır. Gelişmiş SQL fonksiyonları ile anlık tablo hesaplamaları yapılır.
+- **API-Football Entegrasyonu:** Gerçek dünya takımları, kadroları ve logoları, harici futbol API'ları üzerinden otomatik olarak senkronize edilir.
+- **Kariyer Yönetimi & İstatistikler:** Tüm tamamlanmış liglerdeki performans verileri (Gol, Asist, MOTM/MVP, Galibiyet Oranı) kullanıcı profilinde kümülatif ve kalıcı olarak saklanır.
+- **Akıllı İstatistik Tetikleyicileri:** Veri tutarlılığını koruyan, skor güncellendiğinde tüm tabloları senkronize eden veritabanı trigger'ları.
+- **Modern Arayüz:** Tailwind CSS/NativeWind ile optimize edilmiş UX tasarımı.
+
+### 🏗 Teknik Mimari ve Katmanlar
+
+> Uygulama, "Separation of Concerns" (Sorumlulukların Ayrılması) prensibine sadık kalarak inşa edilmiştir. İş mantığının (Business Logic) büyük bir kısmı maksimum hız ve veri güvenliği için veritabanı seviyesinde çözülmüştür.
+
+#### Frontend Teknolojileri
+
+- **Framework:** React Native (Expo SDK) / React 18 & TypeScript.
+- **Styling:** NativeWind (Tailwind CSS for Mobile).
+- **State Management:** Zustand (Centralized UI Store) & TanStack Query v5 (Server State & Optimistic Updates).
+- **Animations & Navigation:** Moti (Reanimated 3 wrapper) & Expo Router (File-based routing).
+
+#### 🛡 Backend & Veritabanı (PostgreSQL & Supabase)
+
+- **Auth:** Supabase Auth (OTP & Metadata Support).
+- **Real-time:** Supabase Realtime (Postgres Changes - Websocket tabanlı).
+- **Security:** Row Level Security (RLS) ile kullanıcı bazlı veri izolasyonu.
+- **Mimari Katmanlar:**
+    - **Hooks Layer (/hooks):** İş mantığı ve Supabase etkileşimleri (örn: useLeagueActions, useLobby).
+    - **Store Layer (/store):** Global UI state yönetimi.
+    - **Service Layer (/services):** Dış dünya API entegrasyonları (örn: TeamSyncService).
+    - **Types Layer (/types):** %100 TypeScript tip güvenliği.
+
+### 💾 Veri Modeli ve Veritabanı Katmanı
+
+> Veritabanı mimarisi, ilişkisel bütünlüğü (Referential Integrity) koruyacak şekilde atomik ve normalize bir yapıdadır:
+
+#### ⚙️ Kritik İş Mantığı (Server-Side Logic)
+> Sistem, iş yükünü istemciden (client) alıp veritabanı katmanına (PostgreSQL) kaydırarak veri güvenliğini ve hızını maksimize eder:
+
+- **trigger_update_standings:** Maç skorları güncellendiği anda tetiklenir; league_participants tablosundaki istatistikleri (G, B, M, Averaj) anlık olarak yeniden hesaplar.
+
+- **on_auth_user_created_stats:** Yeni bir kullanıcı kayıt olduğu anda otomatik olarak profiles ve user_career_stats satırlarını oluşturarak kullanıcıyı sisteme hazırlar.
+
+- **league_standings:** Karmaşık join operasyonlarını minimize eden, league_participants verilerini anlık puan tablosuna dönüştüren yüksek performanslı katman.
+
+#### 📊 Detaylı Tablo Yapısı
+
+| Tablo Adı | Sorumluluk | Öne Çıkan Kolonlar |
+| :--- | :--- | :--- |
+| **profiles** | Kullanıcı kimlik ve profil yönetimi. | `username`, `avatar_url`, `favorite_team_id` |
+| **leagues** | Lig kuralları, dinamik puanlama ve erişim yönetimi. | `name`, `win_points`, `loss_points`, `invite_code`, `status` |
+| **matches** | Fikstür akışı, canlı skorlar ve MOTM verileri. | `home_score`, `away_score`, `is_completed`, `motm_user_id`, `round_number` |
+| **league_participants** | Oyuncuların lig özelindeki detaylı performans verileri. | `team_name`, `points`, `played`, `won`, `lost`, `drawn`, `goals_for/against` |
+| **league_standings** | Anlık hesaplanan (aggregate) canlı puan tablosu katmanı. | `points`, `won`, `lost`, `drawn`, `goals_for/against` |
+| **user_career_stats** | Oyuncunun tüm liglerdeki kümülatif kariyer özeti. | `total_matches`, `total_wins`, `total_mvp`, `goals_for` |
+| **official_leagues** | Senkronize edilmiş gerçek dünya ligleri kütüphanesi. | `name`, `country`, `api_id`, `logo_url` |
+| **official_teams** | Profesyonel takımlar, logolar ve kurumsal renkler. | `name`, `colors (jsonb)`, `api_id`, `league_id` |
+
+### Sistem Mimari Şeması ve Veri Akışı
+
+```mermaid
+graph TD
+    %% Katman Tanımlamalari
+    subgraph Client_Layer["Client Layer (Expo & UI)"]
+        UI[User Interface]
+        Query[TanStack Query / State]
+    end
+
+    subgraph Logic_Layer["Logic Layer (SQL & Triggers)"]
+        T_Fixture[start_league_engine]
+        T_Score[trigger_update_standings]
+        T_Career[on_match_update]
+    end
+
+    subgraph Storage_Layer["Storage Layer (Supabase)"]
+        L[(leagues)]
+        M[(matches)]
+        LP[(league_participants)]
+        UCS[(user_career_stats)]
+        OT[(official_teams)]
+    end
+
+    %% Veri Akislari
+    UI -->|Lig Olustur| L
+    L -->|Fikstur Uret| T_Fixture
+    T_Fixture -->|INSERT| M
+
+    UI -->|Skor Gir / Guncelle| M
+    M -->|AFTER UPDATE| T_Score
+    T_Score -->|Puan Hesapla| LP
+
+    M -->|Mac Tamamla| T_Career
+    T_Career -->|Kariyer Guncelle| UCS
+
+    OT -->|Takim Verisi| LP
+```
