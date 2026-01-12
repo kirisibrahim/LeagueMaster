@@ -83,7 +83,6 @@ export const DashboardView = ({ league, standings, onRefresh }: Props) => {
           filter: `league_id=eq.${league.id}`,
         },
         () => {
-          console.log("⚽ Maç verileri güncellendi...");
           queryClient.invalidateQueries({ queryKey: ['standings', league.id] });
           queryClient.invalidateQueries({ queryKey: ['nextMatch', league.id] });
           queryClient.invalidateQueries({ queryKey: ['fullFixture', league.id] });
@@ -99,7 +98,6 @@ export const DashboardView = ({ league, standings, onRefresh }: Props) => {
         },
         (payload: any) => {
           if (payload.new?.status === 'completed') {
-            console.log("🚀 Lig bitti! Hedefli temizlik yapılıyor...");
             queryClient.invalidateQueries({ queryKey: ['league_details', league.id] });
             queryClient.invalidateQueries({ queryKey: ['standings', league.id] });
             setCurrentLeagueId(null); // lobiye dönmek için
@@ -115,7 +113,6 @@ export const DashboardView = ({ league, standings, onRefresh }: Props) => {
 
   useEffect(() => {
     if (league?.status === 'completed') {
-      console.log("⚠️ Mevcut lig zaten bitmiş, lobiye yönlendiriliyorsun...");
       // temizlik
       queryClient.clear();
       setCurrentLeagueId(null);

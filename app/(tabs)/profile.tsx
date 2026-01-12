@@ -3,23 +3,29 @@ import { useAuthActions } from '@/hooks/useAuthActions';
 import { useUserCareer } from '@/hooks/useCareer';
 import { usePastLeagues } from '@/hooks/usePastLeagues';
 import { useLeagueStore } from '@/store/useLeagueStore';
+import { useNotificationStore } from '@/store/useNotificationStore';
+import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
+import { MotiView } from 'moti';
 import { styled } from 'nativewind';
 import React, { useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const StyledView = styled(View);
 const StyledText = styled(Text);
 const StyledImage = styled(Image);
 
 export default function ProfileScreen() {
+  const insets = useSafeAreaInsets();
   const { handleSignOut } = useAuthActions();
   const userProfile = useLeagueStore((state) => state.userProfile);
   const { stats, isLoading, resetStats, refetch: refetchStats } = useUserCareer();
   const { data: pastLeagues, refetch: refetchPast } = usePastLeagues();
   const [selectedLeague, setSelectedLeague] = useState<{ id: string, name: string } | null>(null);
+  const showConfirm = useNotificationStore((state) => state.showConfirm);
+  const hideNotification = useNotificationStore((state) => state.hideNotification);
 
-  // FocusEffect ile otomatik tazeleme
   useFocusEffect(
     React.useCallback(() => {
       if (refetchStats) refetchStats();
@@ -27,151 +33,168 @@ export default function ProfileScreen() {
     }, [])
   );
 
-  // rating algoritması
   const ovr = useMemo(() => {
-    if (!stats || stats.total_matches === 0) return 60;
+    if (!stats || !stats.total_matches || stats.total_matches === 0) return 60;
     const winRate = (stats.total_wins / stats.total_matches) * 100;
-    // galibiyet oranına göre puanlama
     const baseRating = 60 + (winRate * 0.39);
     return Math.min(Math.round(baseRating), 99);
   }, [stats]);
 
   const handleReset = () => {
-    Alert.alert(
-      "İstatistikleri Sıfırla",
+    showConfirm(
+      "Kariyeri Sıfırla", // title
       "Kariyerindeki tüm maç ve gol verileri silinecek. Bu işlem geri alınamaz!",
       [
-        { text: "Vazgeç", style: "cancel" },
-        { text: "Sıfırla", style: "destructive", onPress: () => resetStats.mutate() }
+        {
+          text: "Sıfırla",
+          style: "destructive",
+          onPress: () => {
+            resetStats.mutate();
+            hideNotification();
+          }
+        },
+        {
+          text: "Vazgeç",
+          style: "cancel",
+          onPress: () => hideNotification()
+        }
       ]
     );
   };
 
   if (isLoading) return (
-    <StyledView className="flex-1 bg-[#0b0e11] justify-center">
-      <ActivityIndicator color="#00ff85" />
+    <StyledView className="flex-1 bg-[#0b0e11] justify-center items-center">
+      <ActivityIndicator color="#00ff85" size="large" />
     </StyledView>
   );
 
   return (
-    <ScrollView contentContainerStyle={{ flexGrow: 1 }} className="bg-[#0b0e11]">
-      <StyledView className="flex-1 p-6 items-center justify-top mt-12">
-        <StyledView className="w-72 h-[420px] bg-[#1a1d23] rounded-[40px] border-2 border-[#00ff85] p-8 shadow-2xl shadow-[#00ff85]/30">
+    <ScrollView
+      contentContainerStyle={{
+        paddingBottom: 100,
+        paddingTop: insets.top
+      }}
+      className="bg-[#0b0e11]"
+      showsVerticalScrollIndicator={false}
+    >
+      <StyledView className="p-6">
+        <MotiView
+          from={{ opacity: 0, translateY: 20 }}
+          animate={{ opacity: 1, translateY: 0 }}
+          transition={{ type: 'spring', damping: 15 }}
+          className="w-full aspect-[4/5] bg-[#1a1d23] rounded-[45px] border-2 border-[#00ff85] p-8 relative overflow-hidden shadow-2xl shadow-[#00ff85]/20"
+        >
+          <StyledView className="absolute -right-20 -top-20 w-64 h-64 bg-[#00ff85]/5 rounded-full" />
+
           <StyledView className="flex-row justify-between items-start">
             <StyledView>
-              <StyledText className="text-[#00ff85] text-6xl font-black italic tracking-tighter leading-none">
+              <StyledText className="text-[#00ff85] text-7xl font-black italic leading-none tracking-tighter">
                 {ovr}
               </StyledText>
-              <StyledText className="text-gray-500 font-black text-[10px] tracking-[2px] mt-1">
-                {ovr >= 90 ? 'LEGEND' : ovr >= 80 ? 'WORLD CLASS' : 'AMATEUR'}
+              <StyledText className="text-gray-500 font-bold text-[10px] tracking-[3px] mt-2">
+                {ovr >= 85 ? 'EFSANE' : ovr >= 75 ? 'PROFESYONEL' : 'AMATÖR'}
               </StyledText>
             </StyledView>
-            <StyledView className="w-16 h-16 bg-[#2a2e35] rounded-2xl items-center justify-center border border-white/10 shadow-inner overflow-hidden">
+
+            <StyledView className="w-20 h-20 bg-black/30 rounded-3xl items-center justify-center border border-white/10 shadow-lg">
               {userProfile?.logo_url ? (
                 <StyledImage
-                  key={userProfile.logo_url}
                   source={{ uri: userProfile.logo_url }}
-                  style={{ width: 48, height: 48 }}
-                  className="w-12 h-12"
+                  className="w-16 h-16"
                   resizeMode="contain"
                 />
               ) : (
-                <StyledView className="items-center justify-center">
-                  <StyledText className="text-white text-[10px] font-black uppercase tracking-tighter">
-                    {userProfile?.favorite_team?.substring(0, 3) || 'UT'}
-                  </StyledText>
-                </StyledView>
+                <Ionicons name="shield" size={40} color="#333" />
               )}
             </StyledView>
           </StyledView>
 
-          <StyledView className="mt-14 items-center">
-            <StyledView className="bg-[#00ff85]/10 px-4 py-1 rounded-full mb-2">
-              <StyledText className="text-[#00ff85] text-[10px] font-black uppercase tracking-widest">
-                Active Player
-              </StyledText>
-            </StyledView>
-            <StyledText className="text-white text-3xl font-black uppercase italic tracking-tighter" numberOfLines={1}>
+          <StyledView className="mt-12 items-center">
+            <StyledView className="h-1.5 w-20 bg-[#00ff85] mb-4 rounded-full shadow-lg shadow-[#00ff85]" />
+            <StyledText className="text-white text-4xl font-black uppercase tracking-tighter text-center">
               {userProfile?.username}
             </StyledText>
-            <StyledView className="h-1 w-16 bg-[#00ff85] mt-4 rounded-full shadow-lg shadow-[#00ff85]" />
+            <StyledView className="h-1.5 w-20 bg-[#00ff85] mt-4 rounded-full shadow-lg shadow-[#00ff85]" />
           </StyledView>
 
-          <StyledView className="mt-auto flex-row justify-between border-t border-white/10 pt-8">
-            <StatItem label="MAÇ" value={stats?.total_matches || 0} />
-            <StatItem label="GOL" value={stats?.goals_for || 0} />
+          <StyledView className="mt-auto flex-row justify-between border-t border-white/5 pt-8">
+            <StatItem label="MAÇ" value={stats?.total_matches ?? 0} />
+            <StatItem label="GOL" value={stats?.goals_for ?? 0} />
             <StatItem
-              label="WIN"
-              value={`%${stats?.total_matches ? Math.round((stats.total_wins / stats.total_matches) * 100) : 0}`}
+              label="G/M"
+              value={stats?.total_matches > 0 ? (stats.goals_for / stats.total_matches).toFixed(1) : "0.0"}
+            />
+            <StatItem
+              label="WIN RATE"
+              value={`%${stats?.total_matches > 0 ? Math.round((stats.total_wins / stats.total_matches) * 100) : 0}`}
               isHighlight
             />
           </StyledView>
-        </StyledView>
+        </MotiView>
 
-        <StyledView className="w-full mt-12 space-y-4">
-          <TouchableOpacity
+        <StyledView className="flex-row justify-between mt-8">
+          <ActionButton
+            label="SIFIRLA"
+            icon="refresh-outline"
             onPress={handleReset}
-            className="w-full py-5 rounded-3xl bg-[#1a1d23] border border-white/5 items-center"
-          >
-            <StyledText className="text-gray-500 font-bold uppercase tracking-[2px] text-[10px]">
-              Kariyeri Sıfırla
-            </StyledText>
-          </TouchableOpacity>
-
-          <TouchableOpacity
+            variant="secondary"
+          />
+          <ActionButton
+            label="ÇIKIŞ"
+            icon="log-out-outline"
             onPress={handleSignOut}
-            className="w-full py-5 rounded-3xl bg-red-500/10 border border-red-500/20 items-center"
-          >
-            <StyledText className="text-red-500 font-bold uppercase tracking-[2px] text-[10px]">
-              Güvenli Çıkış Yap
-            </StyledText>
-          </TouchableOpacity>
+            variant="danger"
+          />
         </StyledView>
 
-        <StyledView className="w-full mt-10">
-          <StyledText className="text-white/30 font-black text-[10px] uppercase tracking-[3px] ml-1 mb-4">
-            Müze & Arşiv
-          </StyledText>
+        <StyledView className="mt-12">
+          <StyledView className="flex-row items-center justify-between mb-6 px-2">
+            <StyledText className="text-white font-black text-xs uppercase tracking-[3px]">
+              Müze & Arşiv
+            </StyledText>
+            <StyledView className="h-[1px] flex-1 bg-white/10 ml-4" />
+          </StyledView>
 
           {pastLeagues && pastLeagues.length > 0 ? (
             pastLeagues.map((item: any) => (
-              <TouchableOpacity
+              <MotiView
                 key={item.leagues.id}
-                onPress={() => setSelectedLeague({ id: item.leagues.id, name: item.leagues.name })}
-                activeOpacity={0.7}
-                className="bg-[#1a1d23] rounded-3xl p-5 mb-3 border border-white/5 flex-row justify-between items-center"
+                from={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 200 }}
               >
-                <StyledView className="flex-row items-center">
-                  <StyledView className="w-10 h-10 bg-[#f1c40f]/10 rounded-full items-center justify-center border border-[#f1c40f]/20 mr-3">
-                    <StyledText className="text-lg">🏆</StyledText>
+                <TouchableOpacity
+                  onPress={() => setSelectedLeague({ id: item.leagues.id, name: item.leagues.name })}
+                  activeOpacity={0.8}
+                  className="bg-[#1a1d23] rounded-[30px] p-5 mb-4 border border-white/5 flex-row items-center shadow-sm"
+                >
+                  <StyledView className="w-14 h-14 bg-yellow-500/10 rounded-2xl items-center justify-center border border-yellow-500/20 mr-4">
+                    <Ionicons name="trophy" size={24} color="#f1c40f" />
                   </StyledView>
-                  <StyledView>
-                    <StyledText className="text-white font-bold text-sm uppercase">
+                  <StyledView className="flex-1">
+                    <StyledText className="text-white font-bold text-base uppercase italic tracking-tighter">
                       {item.leagues.name}
                     </StyledText>
-                    <StyledText className="text-gray-500 text-[10px] font-bold">
-                      {item.team_name} ile katıldı
+                    <StyledText className="text-gray-500 text-[10px] font-bold uppercase">
+                      {item.team_name} • Sezon Sonu
                     </StyledText>
                   </StyledView>
-                </StyledView>
-
-                <StyledView className="bg-black/20 px-3 py-1.5 rounded-xl">
-                  <StyledText className="text-[#00ff85] font-black text-[9px] uppercase italic">
-                    DETAY
-                  </StyledText>
-                </StyledView>
-              </TouchableOpacity>
+                  <Ionicons name="chevron-forward" size={20} color="#333" />
+                </TouchableOpacity>
+              </MotiView>
             ))
           ) : (
-            <StyledView className="bg-[#1a1d23]/50 rounded-3xl p-8 border border-dashed border-white/10 items-center">
-              <StyledText className="text-gray-600 font-bold text-xs italic">
-                Henüz tamamlanmış bir ligin yok.
+            <StyledView className="bg-[#1a1d23]/50 rounded-[35px] p-10 border border-dashed border-white/10 items-center">
+              <Ionicons name="medal-outline" size={40} color="#222" />
+              <StyledText className="text-gray-600 font-bold text-xs italic mt-4 text-center">
+                Henüz tamamlanmış bir ligin yok.{"\n"}Tarih yazmaya başla!
               </StyledText>
             </StyledView>
           )}
         </StyledView>
 
       </StyledView>
+
       <PastLeagueModal
         visible={!!selectedLeague}
         onClose={() => setSelectedLeague(null)}
@@ -181,14 +204,28 @@ export default function ProfileScreen() {
     </ScrollView>
   );
 }
-// stat bileşeni
-const StatItem = ({ label, value, isHighlight }: { label: string, value: string | number, isHighlight?: boolean }) => (
+
+const StatItem = ({ label, value, isHighlight }: any) => (
   <StyledView className="items-center">
-    <StyledText className={`text-xl font-black italic ${isHighlight ? 'text-[#00ff85]' : 'text-white'}`}>
+    <StyledText className={`text-2xl font-black italic ${isHighlight ? 'text-[#00ff85]' : 'text-white'}`}>
       {value}
     </StyledText>
-    <StyledText className="text-gray-500 text-[9px] font-black uppercase tracking-widest mt-1">
+    <StyledText className="text-gray-600 text-[8px] font-black uppercase tracking-widest mt-1">
       {label}
     </StyledText>
   </StyledView>
+);
+
+const ActionButton = ({ label, icon, onPress, variant }: any) => (
+  <TouchableOpacity
+    onPress={onPress}
+    className={`flex-row items-center justify-center space-x-2 py-4 rounded-2xl border w-[48%] ${variant === 'danger' ? 'bg-red-500/10 border-red-500/20' : 'bg-[#1a1d23] border-white/5'
+      }`}
+  >
+    <Ionicons name={icon} size={18} color={variant === 'danger' ? '#ef4444' : '#555'} />
+    <StyledText className={`font-black text-[10px] uppercase tracking-[1px] ${variant === 'danger' ? 'text-red-500' : 'text-gray-500'
+      }`}>
+      {label}
+    </StyledText>
+  </TouchableOpacity>
 );

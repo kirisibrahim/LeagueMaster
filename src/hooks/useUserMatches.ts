@@ -1,6 +1,5 @@
 import { supabase } from '@/api/supabase';
 import { useLeagueStore } from '@/store/useLeagueStore';
-import { Match } from '@/types/database';
 import { useQuery } from '@tanstack/react-query';
 
 export const useUserMatches = () => {
@@ -11,15 +10,16 @@ export const useUserMatches = () => {
         queryKey: ['user-matches', currentLeagueId, userProfile?.id],
         enabled: !!userProfile?.id && !!currentLeagueId,
         queryFn: async () => {
-            if (!currentLeagueId) return [];
+            if (!currentLeagueId || !userProfile?.id) return [];
 
             const [matchesResponse, participantsResponse] = await Promise.all([
                 supabase
                     .from('matches')
                     .select('*')
                     .eq('league_id', currentLeagueId)
-                    .or(`home_user_id.eq.${userProfile?.id},away_user_id.eq.${userProfile?.id}`)
+                    .or(`home_user_id.eq.${userProfile.id},away_user_id.eq.${userProfile.id}`)
                     .order('match_order', { ascending: true }),
+
                 supabase
                     .from('league_participants')
                     .select(`
@@ -27,26 +27,26 @@ export const useUserMatches = () => {
                         profiles (
                             username,
                             avatar_url
+                        ),
+                        official_teams:team_id (
+                            logo_url
                         )
-                    `) // profiles tablosunu join yaparak kullanıcı adını aldık
+                    `) // official_teams'den logo_url alıyoruz
                     .eq('league_id', currentLeagueId)
             ]);
 
             if (matchesResponse.error) throw matchesResponse.error;
+            if (participantsResponse.error) throw participantsResponse.error;
+
             const participantMap = new Map(participantsResponse.data?.map(p => [p.user_id, p]) || []);
 
             return matchesResponse.data.map(match => ({
                 ...match,
+                // Haritalama yaparken katılımcı verisi tam olarak gelecek
                 home_participant: participantMap.get(match.home_user_id),
                 away_participant: participantMap.get(match.away_user_id)
-            })) as Match[];
+            })) as any[]; // tipleme hatasını önlemek için geçici any 
         },
-        // veriyi sadece mevcut lig ID'sine uygunsa teslim et
-        select: (data) => {
-            if (!currentLeagueId) return [];
-            return data.filter(m => String(m.league_id) === String(currentLeagueId));
-        },
-        staleTime: 0,
-        gcTime: 0,
+        staleTime: 1000 * 60 * 2, // 2 dakika cache'de, veri değiştikçe queryClient.invalidate kullanırız
     });
 };

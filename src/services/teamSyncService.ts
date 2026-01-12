@@ -63,8 +63,6 @@ export const syncCompleteLeague = async (leagueApiId: number) => {
         .upsert(formattedTeams, { onConflict: 'api_id' });
         
       if (tError) throw tError;
-      
-      console.log(`✅ Başarılı: ${leagueData.response[0].league.name} ve ${formattedTeams.length} takım senkronize edildi.`);
       return true;
     }
 

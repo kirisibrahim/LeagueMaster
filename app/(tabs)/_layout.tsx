@@ -23,14 +23,14 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Lig',
+          title: 'Aktif Lig',
           tabBarIcon: ({ color }) => <Ionicons name="trophy-outline" size={24} color={color} />,
         }}
       />
       <Tabs.Screen
         name="matches"
         options={{
-          title: 'Maçlar',
+          title: 'Maç Merkezi',
           tabBarIcon: ({ color }) => <Ionicons name="football-outline" size={24} color={color} />,
         }}
       />

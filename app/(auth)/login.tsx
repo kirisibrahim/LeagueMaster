@@ -4,7 +4,7 @@ import { useNotificationStore } from '@/store/useNotificationStore';
 import { useRouter } from 'expo-router';
 import { MotiView } from 'moti';
 import { styled } from 'nativewind';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, Image, Keyboard, Platform, ScrollView, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 
 const StyledView = styled(View);

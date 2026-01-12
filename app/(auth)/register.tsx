@@ -1,5 +1,5 @@
-import { supabase } from '@/api/supabase';
 import TeamPickerModal from '@/components/home/TeamPickerModal';
+import { useAuthActions } from '@/hooks/useAuthActions';
 import { useNotificationStore } from '@/store/useNotificationStore';
 import { useRouter } from 'expo-router';
 import { MotiView } from 'moti';
@@ -19,6 +19,7 @@ export default function RegisterScreen() {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const { handleSignUp } = useAuthActions();
 
   const router = useRouter();
   const showNotification = useNotificationStore((state) => state.showNotification);
@@ -38,7 +39,7 @@ export default function RegisterScreen() {
       hideSubscription.remove();
     };
   }, []);
-
+  
   async function signUp() {
     if (!email.trim() || !password.trim() || !username.trim() || !selectedTeam) {
       showNotification("Lütfen tüm alanları doldur ve favori takımını seç!", "error");
@@ -48,43 +49,15 @@ export default function RegisterScreen() {
     setLoading(true);
 
     try {
-      // Auth Kaydı, Kullanıcıyı oluşturuyoruz
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: email.trim(),
-        password,
-        options: {
-          emailRedirectTo: 'leaguemaster://',
-          data: {
-            username: username.trim(),
-            // Buraya metadata olarak ekliyoruz ki auth seviyesinde de tutulsun
-            favorite_team: selectedTeam.name,
-            favorite_team_id: selectedTeam.id
-          }
-        }
+      await handleSignUp(email, password, {
+        username: username.trim(),
+        favorite_team: selectedTeam.name,
+        favorite_team_id: selectedTeam.id,
+        // Profil sayfasının logoyu görebilmesi için buraya ekliyoruz
+        logo_url: selectedTeam.logo_url
       });
 
-      if (authError) throw authError;
-
-      // profil tablosu güncelleme 
-      if (authData.user) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .update({
-            username: username.trim(),
-            favorite_team: selectedTeam.name,
-            favorite_team_id: selectedTeam.id,
-            updated_at: new Date(),
-          })
-          .eq('id', authData.user.id);
-
-        if (profileError) {
-          console.error("Profil update hatası:", profileError.message);
-        }
-      }
-
-      showNotification("Hoş geldin şampiyon! E-postanı doğrulamayı unutma.", "success");
-      router.replace('/(auth)/login');
-
+      showNotification("E-postana doğrulama kodu gönderildi!", "success");
     } catch (err: any) {
       showNotification(err.message || "Kayıt sırasında bir hata oluştu.", "error");
     } finally {

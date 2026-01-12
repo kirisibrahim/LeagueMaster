@@ -247,7 +247,6 @@ export const useUndoMatch = () => {
         // kişisel maç geçmişini de tazele
         queryClient.invalidateQueries({ queryKey: ['user-matches'], exact: false })
       ]);
-      // console.log("Maç geri alındı ve veriler tazelendi.");
     },
     onError: (error: any) => {
       handleAppError(error, "UndoMatch");

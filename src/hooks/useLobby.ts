@@ -87,10 +87,6 @@ export function useLobby(leagueId: string | null) {
           queryClient.invalidateQueries({ queryKey: ['nextMatch', leagueId] });
         }
       )
-      .subscribe((status) => {
-        // console.log("Realtime bağlantı durumu:", status);
-      });
-
     return () => {
       supabase.removeChannel(channel);
     };

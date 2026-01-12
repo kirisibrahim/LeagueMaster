@@ -2,9 +2,11 @@ import { supabase } from '@/api/supabase';
 import { LeagueStatus, Profile } from '@/types/database';
 import { create } from 'zustand';
 
-// profile tipini logo_url ekleyerek genişlet
+
 export interface ProfileWithLogo extends Profile {
   logo_url?: string;
+  favorite_team_id?: string;
+  favorite_team?: string;
 }
 
 interface LeagueState {
@@ -27,15 +29,18 @@ export const useLeagueStore = create<LeagueState>((set) => ({
 
   setCurrentLeagueId: (id) => set({ currentLeagueId: id }),
 
-  setUserProfile: (profile) => set((state) => ({
-    userProfile: profile
-      ? {
+  // useLeagueStore.ts içindeki ilgili kısım
+  setUserProfile: (profile) => set((state) => {
+    if (!profile) return { userProfile: null };
+
+    return {
+      userProfile: {
         ...profile,
-        // gelen veri de logo yoksa state deki logoyu koru
-        logo_url: (profile as any).logo_url || state.userProfile?.logo_url
+        // Eğer yeni gelen veride logo varsa onu kullan, yoksa eskini koru
+        logo_url: profile.logo_url || state.userProfile?.logo_url
       }
-      : null
-  })),
+    };
+  }),
 
   // profil ve logoyu ilişkisel olarak çek
   fetchProfile: async (userId: string) => {
@@ -62,8 +67,6 @@ export const useLeagueStore = create<LeagueState>((set) => ({
         };
 
         set({ userProfile: formattedProfile });
-
-        // console.log("✅ Final Profile Object Set:", JSON.stringify(formattedProfile, null, 2));
       }
     } catch (error) {
       console.error("Fetch Profile Error:", error);
