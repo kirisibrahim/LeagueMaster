@@ -16,33 +16,74 @@
 ### 📱 App Screenshots
 
 <p align="center">
-  <img src="screenshots/foto1.jpeg" width="160" />
-  <img src="screenshots/foto2.jpeg" width="160" />
-  <img src="screenshots/foto3.jpeg" width="160" />
-  <img src="screenshots/foto4.jpeg" width="160" />
+  <a href="https://raw.githubusercontent.com/kirisibrahim/LeagueMaster/main/screenshots/foto1.jpeg">
+    <img src="screenshots/foto1.jpeg" width="160" />
+  </a>
+  <a href="https://raw.githubusercontent.com/kirisibrahim/LeagueMaster/main/screenshots/foto2.jpeg">
+    <img src="screenshots/foto2.jpeg" width="160" />
+  </a>
+  <a href="https://raw.githubusercontent.com/kirisibrahim/LeagueMaster/main/screenshots/foto3.jpeg">
+    <img src="screenshots/foto3.jpeg" width="160" />
+  </a>
+  <a href="https://raw.githubusercontent.com/kirisibrahim/LeagueMaster/main/screenshots/foto4.jpeg">
+    <img src="screenshots/foto4.jpeg" width="160" />
+  </a>
 </p>
+
 <p align="center">
-  <img src="screenshots/foto5.jpeg" width="160" />
-  <img src="screenshots/foto6.jpeg" width="160" />
-  <img src="screenshots/foto7.jpeg" width="160" />
-  <img src="screenshots/foto8.jpeg" width="160" />
+  <a href="https://raw.githubusercontent.com/kirisibrahim/LeagueMaster/main/screenshots/foto5.jpeg">
+    <img src="screenshots/foto5.jpeg" width="160" />
+  </a>
+  <a href="https://raw.githubusercontent.com/kirisibrahim/LeagueMaster/main/screenshots/foto6.jpeg">
+    <img src="screenshots/foto6.jpeg" width="160" />
+  </a>
+  <a href="https://raw.githubusercontent.com/kirisibrahim/LeagueMaster/main/screenshots/foto7.jpeg">
+    <img src="screenshots/foto7.jpeg" width="160" />
+  </a>
+  <a href="https://raw.githubusercontent.com/kirisibrahim/LeagueMaster/main/screenshots/foto8.jpeg">
+    <img src="screenshots/foto8.jpeg" width="160" />
+  </a>
 </p>
+
 <p align="center">
-  <img src="screenshots/foto9.jpeg" width="160" />
-  <img src="screenshots/foto10.jpeg" width="160" />
-  <img src="screenshots/foto11.jpeg" width="160" />
-  <img src="screenshots/foto12.jpeg" width="160" />
+  <a href="https://raw.githubusercontent.com/kirisibrahim/LeagueMaster/main/screenshots/foto9.jpeg">
+    <img src="screenshots/foto9.jpeg" width="160" />
+  </a>
+  <a href="https://raw.githubusercontent.com/kirisibrahim/LeagueMaster/main/screenshots/foto10.jpeg">
+    <img src="screenshots/foto10.jpeg" width="160" />
+  </a>
+  <a href="https://raw.githubusercontent.com/kirisibrahim/LeagueMaster/main/screenshots/foto11.jpeg">
+    <img src="screenshots/foto11.jpeg" width="160" />
+  </a>
+  <a href="https://raw.githubusercontent.com/kirisibrahim/LeagueMaster/main/screenshots/foto12.jpeg">
+    <img src="screenshots/foto12.jpeg" width="160" />
+  </a>
 </p>
+
 <p align="center">
-  <img src="screenshots/foto13.jpeg" width="160" />
-  <img src="screenshots/foto14.jpeg" width="160" />
-  <img src="screenshots/foto15.jpeg" width="160" />
-  <img src="screenshots/foto16.jpeg" width="160" />
+  <a href="https://raw.githubusercontent.com/kirisibrahim/LeagueMaster/main/screenshots/foto13.jpeg">
+    <img src="screenshots/foto13.jpeg" width="160" />
+  </a>
+  <a href="https://raw.githubusercontent.com/kirisibrahim/LeagueMaster/main/screenshots/foto14.jpeg">
+    <img src="screenshots/foto14.jpeg" width="160" />
+  </a>
+  <a href="https://raw.githubusercontent.com/kirisibrahim/LeagueMaster/main/screenshots/foto15.jpeg">
+    <img src="screenshots/foto15.jpeg" width="160" />
+  </a>
+  <a href="https://raw.githubusercontent.com/kirisibrahim/LeagueMaster/main/screenshots/foto16.jpeg">
+    <img src="screenshots/foto16.jpeg" width="160" />
+  </a>
 </p>
+
 <p align="center">
-  <img src="screenshots/foto17.jpeg" width="160" />
-  <img src="screenshots/foto18.jpeg" width="160" />
+  <a href="https://raw.githubusercontent.com/kirisibrahim/LeagueMaster/main/screenshots/foto17.jpeg">
+    <img src="screenshots/foto17.jpeg" width="160" />
+  </a>
+  <a href="https://raw.githubusercontent.com/kirisibrahim/LeagueMaster/main/screenshots/foto18.jpeg">
+    <img src="screenshots/foto18.jpeg" width="160" />
+  </a>
 </p>
+
 
 
 ### 🏗 Teknik Mimari ve Katmanlar
