@@ -1,3 +1,14 @@
+## ⚡ TL;DR
+
+LeagueMaster, arkadaş grupları için geliştirilen;
+- Real-time skor ve puan durumu
+- PostgreSQL trigger tabanlı iş mantığı
+- Supabase Realtime & RLS güvenliği
+- Mobil öncelikli (Expo + React Native)
+
+olan modern bir lig yönetim platformudur.
+
+
 ## 🏆 LeagueMaster
 
 >LeagueMaster, arkadaş grupları ve turnuva düzenleyen gruplar için geliştirilmiş; yüksek performanslı, gerçek zamanlı (real-time) senkronizasyon yeteneklerine sahip bir lig yönetim ekosistemidir.
