@@ -16,32 +16,32 @@
 ### 📱 App Screenshots
 
 <p align="center">
-  <img src="screenshots/foto1.jpeg" width="240" />
-  <img src="screenshots/foto2.jpeg" width="240" />
-  <img src="screenshots/foto3.jpeg" width="240" />
-  <img src="screenshots/foto4.jpeg" width="240" />
+  <img src="screenshots/foto1.jpeg" width="160" />
+  <img src="screenshots/foto2.jpeg" width="160" />
+  <img src="screenshots/foto3.jpeg" width="160" />
+  <img src="screenshots/foto4.jpeg" width="160" />
 </p>
 <p align="center">
-  <img src="screenshots/foto5.jpeg" width="240" />
-  <img src="screenshots/foto6.jpeg" width="240" />
-  <img src="screenshots/foto7.jpeg" width="240" />
-  <img src="screenshots/foto8.jpeg" width="240" />
+  <img src="screenshots/foto5.jpeg" width="160" />
+  <img src="screenshots/foto6.jpeg" width="160" />
+  <img src="screenshots/foto7.jpeg" width="160" />
+  <img src="screenshots/foto8.jpeg" width="160" />
 </p>
 <p align="center">
-  <img src="screenshots/foto9.jpeg" width="240" />
-  <img src="screenshots/foto10.jpeg" width="240" />
-  <img src="screenshots/foto11.jpeg" width="240" />
-  <img src="screenshots/foto12.jpeg" width="240" />
+  <img src="screenshots/foto9.jpeg" width="160" />
+  <img src="screenshots/foto10.jpeg" width="160" />
+  <img src="screenshots/foto11.jpeg" width="160" />
+  <img src="screenshots/foto12.jpeg" width="160" />
 </p>
 <p align="center">
-  <img src="screenshots/foto13.jpeg" width="240" />
-  <img src="screenshots/foto14.jpeg" width="240" />
-  <img src="screenshots/foto15.jpeg" width="240" />
-  <img src="screenshots/foto16.jpeg" width="240" />
+  <img src="screenshots/foto13.jpeg" width="160" />
+  <img src="screenshots/foto14.jpeg" width="160" />
+  <img src="screenshots/foto15.jpeg" width="160" />
+  <img src="screenshots/foto16.jpeg" width="160" />
 </p>
 <p align="center">
-  <img src="screenshots/foto17.jpeg" width="240" />
-  <img src="screenshots/foto18.jpeg" width="240" />
+  <img src="screenshots/foto17.jpeg" width="160" />
+  <img src="screenshots/foto18.jpeg" width="160" />
 </p>
 
 
