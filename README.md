@@ -1,14 +1,3 @@
-## ⚡ TL;DR
-
-LeagueMaster, arkadaş grupları için geliştirilen;
-- Real-time skor ve puan durumu
-- PostgreSQL trigger tabanlı iş mantığı
-- Supabase Realtime & RLS güvenliği
-- Mobil öncelikli (Expo + React Native)
-
-olan modern bir lig yönetim platformudur.
-
-
 ## 🏆 LeagueMaster
 
 >LeagueMaster, arkadaş grupları ve turnuva düzenleyen gruplar için geliştirilmiş; yüksek performanslı, gerçek zamanlı (real-time) senkronizasyon yeteneklerine sahip bir lig yönetim ekosistemidir.
@@ -22,6 +11,45 @@ olan modern bir lig yönetim platformudur.
 - **Kariyer Yönetimi & İstatistikler:** Tüm tamamlanmış liglerdeki performans verileri (Gol, Asist, MOTM/MVP, Galibiyet Oranı) kullanıcı profilinde kümülatif ve kalıcı olarak saklanır.
 - **Akıllı İstatistik Tetikleyicileri:** Veri tutarlılığını koruyan, skor güncellendiğinde tüm tabloları senkronize eden veritabanı trigger'ları.
 - **Modern Arayüz:** Tailwind CSS/NativeWind ile optimize edilmiş UX tasarımı.
+
+
+### 📱 App Screenshots
+
+<p align="center">
+  <img src="screenshots/foto1.jpeg" width="240" />
+  <img src="screenshots/foto2.jpeg" width="240" />
+  <img src="screenshots/foto3.jpeg" width="240" />
+</p>
+
+<p align="center">
+  <img src="screenshots/foto4.jpeg" width="240" />
+  <img src="screenshots/foto5.jpeg" width="240" />
+  <img src="screenshots/foto6.jpeg" width="240" />
+</p>
+
+<p align="center">
+  <img src="screenshots/foto7.jpeg" width="240" />
+  <img src="screenshots/foto8.jpeg" width="240" />
+  <img src="screenshots/foto9.jpeg" width="240" />
+</p>
+
+<p align="center">
+  <img src="screenshots/foto10.jpeg" width="240" />
+  <img src="screenshots/foto11.jpeg" width="240" />
+  <img src="screenshots/foto12.jpeg" width="240" />
+</p>
+
+<p align="center">
+  <img src="screenshots/foto13.jpeg" width="240" />
+  <img src="screenshots/foto14.jpeg" width="240" />
+  <img src="screenshots/foto15.jpeg" width="240" />
+</p>
+
+<p align="center">
+  <img src="screenshots/foto16.jpeg" width="240" />
+  <img src="screenshots/foto17.jpeg" width="240" />
+  <img src="screenshots/foto18.jpeg" width="240" />
+</p>
 
 ### 🏗 Teknik Mimari ve Katmanlar
 
