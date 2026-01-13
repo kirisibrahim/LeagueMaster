@@ -6,7 +6,11 @@
     "orientation": "portrait",
     "icon": "./assets/images/logo_main.png",
     "scheme": "leaguemaster",
-    "platforms": ["ios", "android", "web"],
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "ios": {
@@ -19,7 +23,8 @@
         "backgroundColor": "#0b0e11"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.kirisibrahim.LeagueMaster"
     },
     "splash": {
       "image": "./assets/images/logo_main.png",
@@ -31,6 +36,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "324ce412-a626-42b0-af76-48af9a24cd36"
+      }
     }
   }
 }
