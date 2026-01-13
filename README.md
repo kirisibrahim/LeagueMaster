@@ -97,6 +97,9 @@
   </a>
 </p>
 
+### 📱 APK İndir
+En son alığım android buildini bu linkden indirebilirsiniz : 
+[LeagueMaster APK İndir](https://expo.dev/artifacts/eas/nfX3ynyv3v59josieEWk7N.apk)
 
 
 ### 🏗 Teknik Mimari ve Katmanlar
