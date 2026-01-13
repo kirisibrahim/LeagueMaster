@@ -3,6 +3,7 @@
 ![Expo](https://img.shields.io/badge/Expo-SDK-black)
 ![Supabase](https://img.shields.io/badge/Supabase-Postgres-3ECF8E)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-PL%2FpgSQL-336791)
+[LeagueMaster APK İndir](https://expo.dev/artifacts/eas/nfX3ynyv3v59josieEWk7N.apk)
 
 ## 🏆 LeagueMaster
 
@@ -96,11 +97,6 @@
     <img src="screenshots/foto18.jpeg" width="160" />
   </a>
 </p>
-
-### 📱 APK İndir
-En son alığım android buildini bu linkden indirebilirsiniz : 
-[LeagueMaster APK İndir](https://expo.dev/artifacts/eas/nfX3ynyv3v59josieEWk7N.apk)
-
 
 ### 🏗 Teknik Mimari ve Katmanlar
 
