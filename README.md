@@ -3,7 +3,8 @@
 ![Expo](https://img.shields.io/badge/Expo-SDK-black)
 ![Supabase](https://img.shields.io/badge/Supabase-Postgres-3ECF8E)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-PL%2FpgSQL-336791)
-![LeagueMaster APK İndir](https://expo.dev/artifacts/eas/nfX3ynyv3v59josieEWk7N.apk)
+[![LeagueMaster APK İndir](https://img.shields.io/badge/Download-APK-blue?style=for-the-badge)](https://expo.dev/artifacts/eas/nfX3ynyv3v59josieEWk7N.apk)
+
 
 ## 🏆 LeagueMaster
 
